@@ -60,28 +60,28 @@ buy(2, 1) =>
 ```yaml
 properties:
   features:
-    - name: "counter"
+    - name: "counter" # 助数詞
       values: dai, satsu, kire # 言語が持つ素性を列挙する。日本語の場合、名詞には序数詞を一致させる必要がある。
 
-sentences:
+sentences: # sentence と context がキー
   - sentence: "Bought {0:0~no,1~a} {1:数#0}."
     context: "com.example.shopping.buy"
-    translation: "{0}{*助数詞:counter#1}の{1}を買った."
+    translation: "{0}{*助数詞:#1}の{1}を買った."
 
-words:
+words: # word と context がキー
   - word: "car"
     context: "com.example.shopping.buy"
-    controller:
+    controller: # 持っている素性
       counter: dai
     translation:
-      - condition: "true"
+      - condition: {}
         translation: "車"
   - word: "book"
     context: "com.example.shopping.buy"
     controller:
       counter: satsu
     translation:
-      - condition: "true"
+      - condition: {}
         translation: "本"
   - word: "助数詞" # 数値に関する
     context: "com.example.shopping.buy"
@@ -103,14 +103,14 @@ properties:
     - name: number
       values: # 数に関する条件の定義は https://www.gnu.org/software/gettext/manual/gettext.html#Translating-plural-forms を見ること
         - value: single
-          condition "n=1"
+          condition "n==1"
         - value: plural
           condition "n!=1"
 
-sentences:
-  - sentence: "Bought {0:0~no,1~a} {1:数#0}."
+sentences: # 
+  - sentence: "Bought {0:0~no,1~a} {1:number#0}."
     context: "com.example.shopping.buy"
-    translation: "Bought {0:0~no,1~a} {1:数#0}."
+    translation: "Bought {0:0~no,1~a} {1:number#0}."
 
 words:
   - word: "car"
@@ -158,9 +158,10 @@ msg2 =>
 ```
 
 #### grcの翻訳データベース
+
 ```yaml
 properties:
-  features:
+  features: # ギリシャ語には素性が多い
     - name: number
       values:
         - value: single
@@ -169,7 +170,7 @@ properties:
           condition "n=2"
         - value: dual
           condition "n!=1&&n!=2"
-    - name: gender
+    - name: gender # 数以外の素性には、その素性を持つための条件は存在しない。各語に対して指定される。
       values:
         - value: mascurine
         - value: neuter
