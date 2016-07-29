@@ -2,6 +2,7 @@
 
 module I18n.Hermeneus.Prim where
 
+import Data.Fixed
 import Data.Maybe
 import Data.Set (Set)
 import qualified Data.Set as S
@@ -47,6 +48,31 @@ data LocalizedWord = LocalizedWord FeatureEnv [(FeatureCondition, String)]
   deriving (Eq, Ord, Show, Read)
 
 --
+-- Database
+--
+
+type Context = String
+data TranslationSet = TranslationSet { langInfo :: LangInfo
+                                     , sentences :: Map (String, Context) [TranslationTemplate]
+                                     , words :: Map (String, Context) LocalizedWord
+                                     }
+  deriving (Eq, Ord, Show, Read)
+
+type Locale = String
+
+-- ToDo: handle locale string
+type Database = Map Locale TranslationSet
+
+--
+-- Input / Output
+--
+type MessageKey = String
+data MessageArg = ArgNumber Double
+                | ArgString String
+                | ArgWord String Context
+  deriving (Eq, Ord, Read, Show)
+
+--
 -- Language feature data
 --
 
@@ -65,7 +91,7 @@ data NumberHandlingCond = NHEqual NumberHandlingExpr NumberHandlingExpr
   deriving (Eq, Ord, Show, Read)
 
 data NumberHandlingExpr = NHTarget
-                        | NHNum Integer
+                        | NHNum Double
                         | NHAdd NumberHandlingExpr NumberHandlingExpr
                         | NHSub NumberHandlingExpr NumberHandlingExpr
                         | NHMul NumberHandlingExpr NumberHandlingExpr
@@ -78,26 +104,26 @@ numberHandlingEn = NumberHandling "plural" [(NHEqual NHTarget $ NHNum 1, "single
 numberHandlingJa = NumberHandling "none" []
 numberHandlingGrc = NumberHandling "plural" [(NHEqual NHTarget $ NHNum 1, "single"), (NHEqual NHTarget $ NHNum 2, "dual")]
 
-determineNumber :: Integer -> NumberHandling -> FeatureId
+determineNumber :: Double -> NumberHandling -> FeatureId
 determineNumber x (NumberHandling d cs) = determineNumberWithCond x d cs
 
-determineNumberWithCond :: Integer -> FeatureId -> [(NumberHandlingCond, FeatureId)] -> FeatureId
+determineNumberWithCond :: Double -> FeatureId -> [(NumberHandlingCond, FeatureId)] -> FeatureId
 determineNumberWithCond _ d [] = d
 determineNumberWithCond x d ((c, f) : cs) | evalNumberHandlingCond x c = f
                                           | otherwise = determineNumberWithCond x d cs
 
-evalNumberHandlingCond :: Integer -> NumberHandlingCond -> Bool
+evalNumberHandlingCond :: Double -> NumberHandlingCond -> Bool
 evalNumberHandlingCond x (NHEqual a b) = evalNumberHandlingExpr x a == evalNumberHandlingExpr x b
 evalNumberHandlingCond x (NHGreater a b) = evalNumberHandlingExpr x a > evalNumberHandlingExpr x b
 evalNumberHandlingCond x (NHGreaterEqual a b) = evalNumberHandlingExpr x a >= evalNumberHandlingExpr x b
 evalNumberHandlingCond x (NHLess a b) = evalNumberHandlingExpr x a < evalNumberHandlingExpr x b
 evalNumberHandlingCond x (NHLessEqual a b) = evalNumberHandlingExpr x a <= evalNumberHandlingExpr x b
 
-evalNumberHandlingExpr :: Integer -> NumberHandlingExpr -> Integer
+evalNumberHandlingExpr :: Double -> NumberHandlingExpr -> Double
 evalNumberHandlingExpr x NHTarget = x
 evalNumberHandlingExpr _ (NHNum n) = n
 evalNumberHandlingExpr x (NHAdd a b) = evalNumberHandlingExpr x a + evalNumberHandlingExpr x b
 evalNumberHandlingExpr x (NHSub a b) = evalNumberHandlingExpr x a - evalNumberHandlingExpr x b
 evalNumberHandlingExpr x (NHMul a b) = evalNumberHandlingExpr x a * evalNumberHandlingExpr x b
-evalNumberHandlingExpr x (NHDiv a b) = evalNumberHandlingExpr x a `div` evalNumberHandlingExpr x b
-evalNumberHandlingExpr x (NHMod a b) = evalNumberHandlingExpr x a `mod` evalNumberHandlingExpr x b
+evalNumberHandlingExpr x (NHDiv a b) = evalNumberHandlingExpr x a / evalNumberHandlingExpr x b
+evalNumberHandlingExpr x (NHMod a b) = evalNumberHandlingExpr x a `mod'` evalNumberHandlingExpr x b

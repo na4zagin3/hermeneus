@@ -12,6 +12,7 @@ import Data.Map (Map)
 import qualified Data.Map as M
 import           Test.Framework
 import I18n.Hermeneus.Prim
+import I18n.Hermeneus.Database
 
 test_selectWord1, test_selectWord2, test_selectWord3 :: IO ()
 test_selectWord1 = assertEqual "a" $ selectWord (M.fromList []) [(FeatureCondition [], "a")]
@@ -132,3 +133,6 @@ translateTemplates tts storedWords args = do
       w <- derefWordReference wordTranslations storedWordTranslations wref
       tstr <- translateTemplate env ph w
       (tstr :) <$> f envs ts
+
+transltateWord :: Database -> Locale -> MessageKey -> [MessageArg] -> String
+transltateWord db l k as = undefined

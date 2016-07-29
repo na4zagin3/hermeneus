@@ -27,7 +27,8 @@ Message translations are described with `i18n.trs`.
 ##翻訳キーについて
 
 ```bnf
-translation-string = { placeholder | '*' maybe-quoted-string }
+translation-string = { placeholder | general-string }
+word-reference = { placeholder | '*' maybe-quoted-string }
 placeholder = '{' word-reference [ ':' [ feature-constraint { ',' feature-constraint } ] ] '}'
 word-reference = ( placeholder-number | word )
 feature-constraint = [ feature ] feature-expression
