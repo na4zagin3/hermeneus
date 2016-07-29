@@ -1,10 +1,12 @@
 {-# OPTIONS_GHC -F -pgmF htfpp #-}
 
 module I18n.Hermeneus.Engine ( translateTemplates
+                             , translateMessage
                              , htf_thisModulesTests
                              )
 where
 
+import Control.Applicative
 import Data.Maybe
 import Data.Set (Set)
 import qualified Data.Set as S
@@ -13,6 +15,12 @@ import qualified Data.Map as M
 import           Test.Framework
 import I18n.Hermeneus.Prim
 import I18n.Hermeneus.Database
+import I18n.Hermeneus.Message
+
+import Text.Parsec (parse, ParseError)
+
+-- type StoredWordMap a = Map (String, String, Context)
+type StoredWordMap a = Map String a
 
 test_selectWord1, test_selectWord2, test_selectWord3 :: IO ()
 test_selectWord1 = assertEqual "a" $ selectWord (M.fromList []) [(FeatureCondition [], "a")]
@@ -22,18 +30,20 @@ test_selectWord3 = assertEqual "b" $ selectWord (M.fromList [("n", "d")]) [(Feat
 -- | Select word using features.
 -- If there are no candidates, the last candidate may be used.
 selectWord :: FeatureEnv -> [(FeatureCondition, String)] -> String
-selectWord _  [] = undefined
+selectWord _  [] = error "selectWord"
+selectWord _  [(_, w)] = w
 selectWord fe ((fc, w) : xs) | matchFeatureConstraint fc fe = w
                              | otherwise = selectWord fe xs
 
 selectDefaultWord :: [(FeatureCondition, String)] -> String
-selectDefaultWord [] = undefined
+selectDefaultWord [] = error "selectDefaultWord"
 selectDefaultWord ((_, w) : _) = w
 
 test_matchFeatureConstraint :: IO ()
 test_matchFeatureConstraint = do
   assertEqual True $ matchFeatureConstraint (FeatureCondition []) $ M.fromList []
   assertEqual False $ matchFeatureConstraint (FeatureCondition [("n", "s")]) $ M.fromList []
+  assertEqual True $ matchFeatureConstraint (FeatureCondition []) $ M.fromList [("n", "s")]
   assertEqual True $ matchFeatureConstraint (FeatureCondition [("n", "s")]) $ M.fromList [("n", "s")]
   assertEqual False $ matchFeatureConstraint (FeatureCondition [("n", "s")]) $ M.fromList [("n", "d")]
 
@@ -57,11 +67,11 @@ test_resolveFeatures = do
 -- |
 -- Positinally lefter constaint expression has priority.
 
-derefWordReference :: [a] -> Map String a -> WordReference -> Either String a
+derefWordReference :: [a] -> StoredWordMap a -> WordReference -> Either String a
 derefWordReference argEnvs _              (PlaceholderNumber phid) = pure $ argEnvs !! fromInteger phid -- ToDo: Fix about corner cases
 derefWordReference _       storedWordEnvs (WordKey wk) = maybeToEither ("There are no word: " ++ wk) $ M.lookup wk storedWordEnvs
 
-resolveFeatureConstraintExpr :: [FeatureEnv] -> Map String FeatureEnv -> FeatureConstraintExpr -> Either String (Map FeatureId FeatureValue)
+resolveFeatureConstraintExpr :: [FeatureEnv] -> StoredWordMap FeatureEnv -> FeatureConstraintExpr -> Either String (Map FeatureId FeatureValue)
 resolveFeatureConstraintExpr argEnvs storedWordEnvs (FeatureConstraintExpr fid fre) = derefFeature fre
   where
     derefFeature (ConcordWord wref) = do
@@ -72,12 +82,12 @@ resolveFeatureConstraintExpr argEnvs storedWordEnvs (FeatureConstraintExpr fid f
         Just x -> M.singleton fid x
     derefFeature (Feature feature) = pure $ M.singleton fid feature
 
-resolveFeatureConstraintExprs :: [FeatureEnv] -> Map String FeatureEnv -> FeatureEnv -> [FeatureConstraintExpr] -> Either String (Map FeatureId FeatureValue)
+resolveFeatureConstraintExprs :: [FeatureEnv] -> StoredWordMap FeatureEnv -> FeatureEnv -> [FeatureConstraintExpr] -> Either String (Map FeatureId FeatureValue)
 resolveFeatureConstraintExprs argEnvs storedWordEnvs wordEnv fces = do
   envs <- mapM (resolveFeatureConstraintExpr argEnvs storedWordEnvs) fces
   return $ M.unions (wordEnv : envs)
 
-resolveFeaturePlaceholder :: [FeatureEnv] -> Map String FeatureEnv -> Placeholder -> Either String FeatureEnv
+resolveFeaturePlaceholder :: [FeatureEnv] -> StoredWordMap FeatureEnv -> Placeholder -> Either String FeatureEnv
 resolveFeaturePlaceholder argEnvs storedWordEnvs (wref, fces) = do
   features <- derefWordReference argEnvs storedWordEnvs wref
   resolveFeatureConstraintExprs argEnvs storedWordEnvs features fces
@@ -89,15 +99,15 @@ test_translatePlaceholders :: IO ()
 test_translatePlaceholders = do
   assertEqual (Right []) $ translatePlaceholders [] M.empty []
   assertEqual (Right ["a"]) $ translatePlaceholders [(PlaceholderNumber 0, [])] M.empty [LocalizedWord M.empty [(FeatureCondition [], "a")]]
-  let placeholders = [(PlaceholderNumber 1, [FeatureConstraintExpr "number" (ConcordWord (PlaceholderNumber 0))]), (PlaceholderNumber 0, [])]
-  let word1 = LocalizedWord (M.fromList [("number", "single")]) [(FeatureCondition [], "one")]
-  let wordCar = LocalizedWord (M.fromList []) [ (FeatureCondition [("number", "single")], "car")
-                                                 , (FeatureCondition [("number", "plural")], "cars")
+  let placeholders = [(PlaceholderNumber 1, [FeatureConstraintExpr numberFeature (ConcordWord (PlaceholderNumber 0))]), (PlaceholderNumber 0, [])]
+  let word1 = LocalizedWord (M.fromList [(numberFeature, singularValue)]) [(FeatureCondition [], "one")]
+  let wordCar = LocalizedWord (M.fromList []) [ (FeatureCondition [(numberFeature, singularValue)], "car")
+                                                 , (FeatureCondition [(numberFeature, singularValue)], "cars")
                                                  ]
   let argument1 = [ word1, wordCar ]
   assertEqual (Right ["one", "car"]) $ translatePlaceholders placeholders M.empty argument1
 
-translatePlaceholders :: [Placeholder] -> Map String LocalizedWord -> [LocalizedWord] -> Either String [String]
+translatePlaceholders :: [Placeholder] -> StoredWordMap LocalizedWord -> [LocalizedWord] -> Either String [String]
 translatePlaceholders phs storedWords args = do
     let featureEnv (LocalizedWord fe _) = fe
     let wordTranslation (LocalizedWord _ wts) = wts
@@ -107,7 +117,7 @@ translatePlaceholders phs storedWords args = do
     featureEnvs <- mapM (resolveFeaturePlaceholder argEnvs storedWordEnvs) phs
     return $ zipWith selectWord featureEnvs wordTranslations
 
-translateTemplates :: [TranslationTemplate] -> Map String LocalizedWord -> [LocalizedWord] -> Either String [String]
+translateTemplates :: [TranslationTemplate] -> StoredWordMap LocalizedWord -> [LocalizedWord] -> Either String [String]
 translateTemplates tts storedWords args = do
     featureEnvs <- mapM (resolveFeaturePlaceholder argEnvs storedWordEnvs) phs
     f featureEnvs tts
@@ -134,5 +144,30 @@ translateTemplates tts storedWords args = do
       tstr <- translateTemplate env ph w
       (tstr :) <$> f envs ts
 
-transltateWord :: Database -> Locale -> MessageKey -> [MessageArg] -> String
-transltateWord db l k as = undefined
+mapLeft :: (a -> c) -> Either a b -> Either c b
+mapLeft f (Left x) = Left $ f x
+mapLeft _ (Right x) = Right x
+
+filterWord :: MessageArg -> Maybe (String, String, Context)
+filterWord (ArgWord s p c) = Just (s, p, c)
+filterWord               _ = Nothing
+
+-- hasTranslation :: Database -> String -> (String, Context) -> [(String, Context)] -> Bool
+translateMessage :: Database -> Locale -> MessageKey -> [MessageArg] -> Either String String
+translateMessage db l (MessageKey s c) as = do
+  let ws = mapMaybe filterWord as
+  let isTranslatable = hasTranslation db l (s, c) ws
+  let locale = if isTranslatable then l else "en"
+  ts <- maybeToEither "A" $ M.lookup locale db
+  let localizedWords = map (localizeArgument ts) as
+  let defaultTemplate = mapLeft show $ parse parseTranslationMessage "translateMessage" s :: Either String [TranslationTemplate]
+  let localizedTemplate = maybeToEither "B" $ getLocalizedTemplate ts (s, c) :: Either String [TranslationTemplate]
+  localizedTemplate <- localizedTemplate <|> defaultTemplate
+  let storedWord = M.fromList . map (\((s, p, c), x) -> (s ++ "." ++ p, x)) $ M.toList $ translationWords ts
+  concat <$> translateTemplates localizedTemplate storedWord localizedWords
+
+
+exampleCar = ArgWord "car" "cars" ""
+exampleBook = ArgWord "book" "books" ""
+examplePiller = ArgWord "pillar" "pillars" ""
+exampleMsg = MessageKey "Bought {0} {1:number#0}." ""

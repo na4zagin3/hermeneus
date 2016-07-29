@@ -53,8 +53,8 @@ data LocalizedWord = LocalizedWord FeatureEnv [(FeatureCondition, String)]
 
 type Context = String
 data TranslationSet = TranslationSet { langInfo :: LangInfo
-                                     , sentences :: Map (String, Context) [TranslationTemplate]
-                                     , words :: Map (String, Context) LocalizedWord
+                                     , translationSentences :: Map (String, Context) [TranslationTemplate]
+                                     , translationWords :: Map (String, String, Context) LocalizedWord
                                      }
   deriving (Eq, Ord, Show, Read)
 
@@ -66,10 +66,11 @@ type Database = Map Locale TranslationSet
 --
 -- Input / Output
 --
-type MessageKey = String
+data MessageKey = MessageKey String Context
+  deriving (Eq, Ord, Read, Show)
 data MessageArg = ArgNumber Double
                 | ArgString String
-                | ArgWord String Context
+                | ArgWord String String Context
   deriving (Eq, Ord, Read, Show)
 
 --
@@ -91,7 +92,7 @@ data NumberHandlingCond = NHEqual NumberHandlingExpr NumberHandlingExpr
   deriving (Eq, Ord, Show, Read)
 
 data NumberHandlingExpr = NHTarget
-                        | NHNum Double
+                        | NHNum Rational
                         | NHAdd NumberHandlingExpr NumberHandlingExpr
                         | NHSub NumberHandlingExpr NumberHandlingExpr
                         | NHMul NumberHandlingExpr NumberHandlingExpr
@@ -100,30 +101,49 @@ data NumberHandlingExpr = NHTarget
   deriving (Eq, Ord, Show, Read)
 
 numberHandlingEn, numberHandlingJa, numberHandlingGrc :: NumberHandling
-numberHandlingEn = NumberHandling "plural" [(NHEqual NHTarget $ NHNum 1, "single")]
-numberHandlingJa = NumberHandling "none" []
-numberHandlingGrc = NumberHandling "plural" [(NHEqual NHTarget $ NHNum 1, "single"), (NHEqual NHTarget $ NHNum 2, "dual")]
+numberHandlingEn = NumberHandling pluralValue [(NHEqual NHTarget $ NHNum 1, singularValue)]
+numberHandlingJa = NumberHandling noneValue []
+numberHandlingGrc = NumberHandling pluralValue [(NHEqual NHTarget $ NHNum 1, singularValue), (NHEqual NHTarget $ NHNum 2, dualValue)]
 
-determineNumber :: Double -> NumberHandling -> FeatureId
+-- Todo locale specific number format
+translateNumber :: (Num a, Eq a, Ord a, Real a, Fractional a, Show a)=> LangInfo -> a -> LocalizedWord
+translateNumber li x = LocalizedWord (M.singleton "number" $ determineNumber x $ numberHandling li) [(FeatureCondition [], show x)]
+
+determineNumber :: (Num a, Eq a, Ord a, Real a, Fractional a)=> a -> NumberHandling -> FeatureId
 determineNumber x (NumberHandling d cs) = determineNumberWithCond x d cs
 
-determineNumberWithCond :: Double -> FeatureId -> [(NumberHandlingCond, FeatureId)] -> FeatureId
+determineNumberWithCond :: (Num a, Eq a, Ord a, Real a, Fractional a)=> a -> FeatureId -> [(NumberHandlingCond, FeatureId)] -> FeatureId
 determineNumberWithCond _ d [] = d
 determineNumberWithCond x d ((c, f) : cs) | evalNumberHandlingCond x c = f
                                           | otherwise = determineNumberWithCond x d cs
 
-evalNumberHandlingCond :: Double -> NumberHandlingCond -> Bool
+evalNumberHandlingCond :: (Num a, Eq a, Ord a, Real a, Fractional a)=> a -> NumberHandlingCond -> Bool
 evalNumberHandlingCond x (NHEqual a b) = evalNumberHandlingExpr x a == evalNumberHandlingExpr x b
 evalNumberHandlingCond x (NHGreater a b) = evalNumberHandlingExpr x a > evalNumberHandlingExpr x b
 evalNumberHandlingCond x (NHGreaterEqual a b) = evalNumberHandlingExpr x a >= evalNumberHandlingExpr x b
 evalNumberHandlingCond x (NHLess a b) = evalNumberHandlingExpr x a < evalNumberHandlingExpr x b
 evalNumberHandlingCond x (NHLessEqual a b) = evalNumberHandlingExpr x a <= evalNumberHandlingExpr x b
 
-evalNumberHandlingExpr :: Double -> NumberHandlingExpr -> Double
+evalNumberHandlingExpr :: (Num a, Real a, Fractional a)=> a -> NumberHandlingExpr -> a
 evalNumberHandlingExpr x NHTarget = x
-evalNumberHandlingExpr _ (NHNum n) = n
+evalNumberHandlingExpr _ (NHNum n) = fromRational n
 evalNumberHandlingExpr x (NHAdd a b) = evalNumberHandlingExpr x a + evalNumberHandlingExpr x b
 evalNumberHandlingExpr x (NHSub a b) = evalNumberHandlingExpr x a - evalNumberHandlingExpr x b
 evalNumberHandlingExpr x (NHMul a b) = evalNumberHandlingExpr x a * evalNumberHandlingExpr x b
 evalNumberHandlingExpr x (NHDiv a b) = evalNumberHandlingExpr x a / evalNumberHandlingExpr x b
 evalNumberHandlingExpr x (NHMod a b) = evalNumberHandlingExpr x a `mod'` evalNumberHandlingExpr x b
+
+
+--
+-- Translation words
+--
+
+nonTranslatedString :: String -> LocalizedWord
+nonTranslatedString x = LocalizedWord M.empty [(FeatureCondition [], x)]
+
+numberFeature, singularValue, pluralValue, noneValue, dualValue :: String
+numberFeature = "number"
+singularValue = "singular"
+pluralValue = "plural"
+noneValue = "none"
+dualValue = "dual"

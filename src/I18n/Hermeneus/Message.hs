@@ -41,7 +41,7 @@ parsePlaceholder = do
   return $ Placeholder (wRef, exprs)
 
 parseTranslatedString :: Stream s m Char => ParsecT s u m TranslationTemplate
-parseTranslatedString = fmap TranslatedString $ many $ noneOf "{}"
+parseTranslatedString = fmap TranslatedString $ many1 $ noneOf "{}"
 
 parseWordReference :: Stream s m Char => ParsecT s u m WordReference
 parseWordReference = parseWord <|> parseNumber
