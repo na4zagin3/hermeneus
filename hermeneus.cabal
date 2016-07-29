@@ -1,0 +1,51 @@
+name:                hermeneus
+version:             0.1.0.0
+synopsis:            Initial project template from stack
+description:         Please see README.md
+homepage:            https://github.com/githubuser/hermeneus#readme
+license:             BSD3
+license-file:        LICENSE
+author:              Noriaki Sakamoto
+maintainer:          noriaki@indeed.com
+copyright:           2016 Noriaki Sakamoto
+category:            Web, Language
+build-type:          Simple
+-- extra-source-files:
+cabal-version:       >=1.10
+
+library
+  hs-source-dirs:      src
+  exposed-modules:     Lib
+                       I18n.Hermeneus
+  build-depends:       base >= 4.7 && < 5
+                     , haxr >= 3000.11 && < 3000.12
+                     , yaml >= 0.8 && < 1
+                     , aeson >= 0.11 && < 1
+                     , text >= 1.2 && < 2
+                     , bytestring >= 0.10 && < 1
+                     , lens >= 4.13 && < 5
+                     , hxt >= 9.3 && < 10
+  default-language:    Haskell2010
+
+executable hermeneus-exe
+  hs-source-dirs:      app
+  main-is:             Main.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       base
+                     , hermeneus
+  default-language:    Haskell2010
+
+test-suite hermeneus-test
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             Spec.hs
+  build-depends:       base
+                     , hermeneus
+                     , HUnit
+                     , QuickCheck
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  default-language:    Haskell2010
+
+-- source-repository head
+--   type:     git
+--   location: https://github.com/githubuser/hermeneus
