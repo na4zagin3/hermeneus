@@ -29,9 +29,6 @@ data TranslationSet = TranslationSet { langInfo :: LangInfo
                                      }
   deriving (Eq, Ord, Show, Read)
 
-data LangInfo = LangInfo
-  deriving (Eq, Ord, Show, Read)
-
 -- ToDo: handle locale string
 type Database = Map String TranslationSet
 
@@ -40,4 +37,4 @@ hasTranslation db loc s ws = fromMaybe False $ do
   ts <- loc `M.lookup` db
   _ <- s `M.lookup` sentences ts
   return $ S.fromList ws `S.isSubsetOf` M.keysSet (sentences ts)
-  
+
