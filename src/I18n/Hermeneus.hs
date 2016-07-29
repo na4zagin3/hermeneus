@@ -2,6 +2,7 @@
 
 module I18n.Hermeneus where
 
+import Data.Maybe
 import Data.Set (Set)
 import qualified Data.Set as S
 import Data.Map (Map)
@@ -59,6 +60,10 @@ selectWord _  [] = undefined
 selectWord fe ((fc, w) : xs) | matchFeatureConstraint fc fe = w
                              | otherwise = selectWord fe xs
 
+selectDefaultWord :: [(FeatureCondition, String)] -> String
+selectDefaultWord [] = undefined
+selectDefaultWord ((_, w) : _) = w
+
 test_matchFeatureConstraint :: IO ()
 test_matchFeatureConstraint = do
   assertEqual True $ matchFeatureConstraint (FeatureCondition []) $ M.fromList []
@@ -67,7 +72,9 @@ test_matchFeatureConstraint = do
   assertEqual False $ matchFeatureConstraint (FeatureCondition [("n", "s")]) $ M.fromList [("n", "d")]
 
 matchFeatureConstraint :: FeatureCondition -> FeatureEnv -> Bool
-matchFeatureConstraint = undefined
+matchFeatureConstraint (FeatureCondition kvs) env = kvsMap `M.isSubmapOf` env
+  where
+    kvsMap = M.fromList kvs
 
 wordFeatures :: LocalizedWord -> Set FeatureId
 wordFeatures (LocalizedWord fe fcss) = M.keysSet fe `S.union` S.unions (map (extractFeatures . fst) fcss)
@@ -84,15 +91,15 @@ test_resolveFeatures = do
 -- |
 -- Positinally lefter constaint expression has priority.
 
-derefFeatures :: [FeatureEnv] -> Map String FeatureEnv -> WordReference -> Either String (Map FeatureId FeatureValue)
-derefFeatures argEnvs storedWordEnvs (PlaceholderNumber phid) = pure $ argEnvs !! fromInteger phid -- ToDo: Fix about corner cases
-derefFeatures argEnvs storedWordEnvs (WordKey wk) = maybeToEither ("There are no word: " ++ wk) $ M.lookup wk storedWordEnvs
+derefWordReference :: [a] -> Map String a -> WordReference -> Either String a
+derefWordReference argEnvs _              (PlaceholderNumber phid) = pure $ argEnvs !! fromInteger phid -- ToDo: Fix about corner cases
+derefWordReference _       storedWordEnvs (WordKey wk) = maybeToEither ("There are no word: " ++ wk) $ M.lookup wk storedWordEnvs
 
 resolveFeatureConstraintExpr :: [FeatureEnv] -> Map String FeatureEnv -> FeatureConstraintExpr -> Either String (Map FeatureId FeatureValue)
 resolveFeatureConstraintExpr argEnvs storedWordEnvs (FeatureConstraintExpr fid fre) = derefFeature fre
   where
     derefFeature (ConcordWord wref) = do
-      features <- derefFeatures argEnvs storedWordEnvs wref
+      features <- derefWordReference argEnvs storedWordEnvs wref
       let v = M.lookup fid features
       return $ case v of
         Nothing -> M.empty
@@ -104,16 +111,59 @@ resolveFeatureConstraintExprs argEnvs storedWordEnvs wordEnv fces = do
   envs <- mapM (resolveFeatureConstraintExpr argEnvs storedWordEnvs) fces
   return $ M.unions (wordEnv : envs)
 
-resolveFeaturePlaceholder :: [FeatureEnv] -> Map String FeatureEnv -> Placeholder -> Either String (Map FeatureId FeatureValue)
+resolveFeaturePlaceholder :: [FeatureEnv] -> Map String FeatureEnv -> Placeholder -> Either String FeatureEnv
 resolveFeaturePlaceholder argEnvs storedWordEnvs (wref, fces) = do
-  features <- derefFeatures argEnvs storedWordEnvs wref
+  features <- derefWordReference argEnvs storedWordEnvs wref
   resolveFeatureConstraintExprs argEnvs storedWordEnvs features fces
 
 maybeToEither :: s -> Maybe a -> Either s a
 maybeToEither = flip maybe Right . Left
 
-translateWords :: [Placeholder] -> Map String LocalizedWord -> [String]
-translateWords = undefined
+test_translatePlaceholders :: IO ()
+test_translatePlaceholders = do
+  assertEqual (Right []) $ translatePlaceholders [] M.empty []
+  assertEqual (Right ["a"]) $ translatePlaceholders [(PlaceholderNumber 0, [])] M.empty [LocalizedWord M.empty [(FeatureCondition [], "a")]]
+  let placeholders = [(PlaceholderNumber 1, [FeatureConstraintExpr "number" (ConcordWord (PlaceholderNumber 0))]), (PlaceholderNumber 0, [])]
+  let word1 = LocalizedWord (M.fromList [("number", "single")]) [(FeatureCondition [], "one")]
+  let wordCar = LocalizedWord (M.fromList []) [ (FeatureCondition [("number", "single")], "car")
+                                                 , (FeatureCondition [("number", "plural")], "cars")
+                                                 ]
+  let argument1 = [ word1, wordCar ]
+  assertEqual (Right ["one", "car"]) $ translatePlaceholders placeholders M.empty argument1
+
+translatePlaceholders :: [Placeholder] -> Map String LocalizedWord -> [LocalizedWord] -> Either String [String]
+translatePlaceholders phs storedWords args = do
+    let featureEnv (LocalizedWord fe _) = fe
+    let wordTranslation (LocalizedWord _ wts) = wts
+    let argEnvs = map featureEnv args
+    let storedWordEnvs = M.map featureEnv storedWords
+    let wordTranslations = map wordTranslation args
+    featureEnvs <- mapM (resolveFeaturePlaceholder argEnvs storedWordEnvs) phs
+    return $ zipWith selectWord featureEnvs wordTranslations
+
+translateTemplates :: [TranslationTemplate] -> Map String LocalizedWord -> [LocalizedWord] -> Either String [String]
+translateTemplates tts storedWords args = do
+    featureEnvs <- mapM (resolveFeaturePlaceholder argEnvs storedWordEnvs) phs
+    f featureEnvs tts
   where
     featureEnv (LocalizedWord fe _) = fe
-    wordTranslations (LocalizedWord _ wts) = wts
+    wordTranslation (LocalizedWord _ wts) = wts
+    isPlaceholder (Placeholder ph) = Just ph
+    isPlaceholder (TranslatedString _) = Nothing
+
+    phs = mapMaybe isPlaceholder tts
+    argEnvs = map featureEnv args
+    storedWordEnvs = M.map featureEnv storedWords
+    wordTranslations = map wordTranslation args
+    storedWordTranslations = M.map wordTranslation storedWords
+
+    -- translateTemplate :: FeatureEnv -> Placeholder -> LocalizedWord -> Either String String
+    translateTemplate :: FeatureEnv -> Placeholder -> [(FeatureCondition, String)] -> Either String String
+    translateTemplate env _ wts = return $ selectWord env wts
+    f :: [FeatureEnv] -> [TranslationTemplate] -> Either String [String]
+    f _ [] = pure $ []
+    f envs (TranslatedString str : ts) = (str :) <$> f envs ts
+    f (env : envs) (Placeholder ph@(wref, _) : ts) = do
+      w <- derefWordReference wordTranslations storedWordTranslations wref
+      tstr <- translateTemplate env ph w
+      (tstr :) <$> f envs ts
