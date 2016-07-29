@@ -2,7 +2,10 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# OPTIONS_GHC -F -pgmF htfpp #-}
 
-module I18n.Hermeneus.Message where
+module I18n.Hermeneus.Message ( parseTranslationMessage
+                              , htf_thisModulesTests
+                              )
+where
 
 import Data.Maybe
 import Data.Set (Set)
@@ -22,6 +25,9 @@ test_parseTranslationTemplate = do
   assertEqual (Right $ Placeholder (PlaceholderNumber 0, [FeatureConstraintExpr "number" $ ConcordWord $ PlaceholderNumber 2])) $ parse parseTranslationTemplate "" "{0:number#2}"
   assertEqual (Right $ Placeholder (WordKey "to", [FeatureConstraintExpr "number" $ ConcordWord $ PlaceholderNumber 2])) $ parse parseTranslationTemplate "" "{*to:number#2}"
   assertEqual (Right $ Placeholder (PlaceholderNumber 0, [FeatureConstraintExpr "number" $ Feature "singular"])) $ parse parseTranslationTemplate "" "{0:number=singular}"
+
+parseTranslationMessage :: Stream s m Char => ParsecT s u m [TranslationTemplate]
+parseTranslationMessage = many parseTranslationTemplate
 
 parseTranslationTemplate :: Stream s m Char => ParsecT s u m TranslationTemplate
 parseTranslationTemplate = parsePlaceholder <|> parseTranslatedString
