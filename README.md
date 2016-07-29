@@ -23,6 +23,18 @@ Message translations are described with `i18n.trs`.
 - その他のオブジェクトは`String`型にキャストされそのまま埋め込まれる。
   - 素性を持たない。
 
+
+##翻訳キーについて
+
+```bnf
+translation-string = { placeholder | '*' maybe-quoted-string }
+placeholder = '{' word-reference [ ':' [ feature-constraint { ',' feature-constraint } ] ] '}'
+word-reference = ( placeholder-number | word )
+feature-constraint = [ feature ] feature-expression
+feature-expression = '#' word-reference
+                   | '=' maybe-quoted-string
+```
+
 ### Shopping
 
 #### ソースコード
