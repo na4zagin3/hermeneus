@@ -17,6 +17,10 @@ library
   hs-source-dirs:      src
   exposed-modules:     Lib
                        I18n.Hermeneus
+                       I18n.Hermeneus.Prim
+                       I18n.Hermeneus.Engine
+                       I18n.Hermeneus.Message
+                       I18n.Hermeneus.Database
   build-depends:       base >= 4.7 && < 5
                      , haxr >= 3000.11 && < 3000.12
                      , yaml >= 0.8 && < 1
@@ -27,6 +31,7 @@ library
                      , hxt >= 9.3 && < 10
                      , HTF >= 0.13 && < 1
                      , containers >= 0.5 && < 1
+                     , parsec >= 3.1 && < 4
   default-language:    Haskell2010
 
 executable hermeneus-exe
