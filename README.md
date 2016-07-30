@@ -1,5 +1,5 @@
 # Hermeneus
-A new translation framework that handles concordance.
+A new translation framework that handles agreement.
 
 See: <https://ja.wikipedia.org/wiki/%E4%B8%80%E8%87%B4>
 
@@ -9,7 +9,7 @@ It consists three parts:
 - Editor
 - Renderer
 
-- Handle concordance
+- Handle agreement
 
 ## Use cases
 Message translations are described with `i18n.trs`.
