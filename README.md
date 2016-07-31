@@ -1,7 +1,7 @@
 # Hermeneus
 A new translation framework that handles agreement.
 
-See: <https://ja.wikipedia.org/wiki/%E4%B8%80%E8%87%B4>
+See: <https://en.wikipedia.org/wiki/Agreement_(linguistics)>
 
 ## Project Structure
 It consists three parts:
@@ -11,7 +11,7 @@ It consists three parts:
 
 - Handle agreement
 
-## Use cases
+## Use cases in Java
 Message translations are described with `i18n.trs`.
 メッセージの翻訳は`i18n.rts`により行われる。
 このメソッドは第一引数に翻訳キーを、引き続きプレースホルダーに埋められるべきものを引数として取る。
@@ -29,8 +29,10 @@ Message translations are described with `i18n.trs`.
 ```bnf
 translation-string = { placeholder | general-string }
 word-reference = { placeholder | '*' maybe-quoted-string }
-placeholder = '{' word-reference [ ':' [ feature-constraint { ',' feature-constraint } ] ] '}'
+placeholder = '{' word-reference [ ':' [ placeholder-attribute { ',' placeholder--attribute } ] ] '}'
 word-reference = ( placeholder-number | word )
+placeholder-attribute = feature-constraint | literal-pattern ; not yet implemented
+literal-pattern = maybe-quoted-word [ '{' feature '=' maybe-quoted-string { ',' feature '=' maybe-quoted-string } '}' ] '~' maybe-quoted-word ; not yet implemented
 feature-constraint = [ feature ] feature-expression
 feature-expression = '#' word-reference
                    | '=' maybe-quoted-string
@@ -185,7 +187,7 @@ properties:
           condition "n!=1&&n!=2"
     - name: gender # 数以外の素性には、その素性を持つための条件は存在しない。各語に対して指定される。
       values:
-        - value: mascurine
+        - value: masculine
         - value: neuter
         - value: feminine
     - name: case
@@ -203,7 +205,7 @@ properties:
 sentences:
   - sentence: "Went to {0} from {1}."
     context: "com.example.trip"
-    translation: "εἰς {0:case~accusative,position~nonfinal} ἦλθον ἐξ {1:case~genitive,position~final}."
+    translation: "εἰς {0:case=accusative,position=nonfinal} ἦλθον ἐξ {1:case=genitive,position=final}."
 
 words:
   - word: "Roma"
@@ -217,7 +219,7 @@ words:
         translation: "῾Ρώμην"
       - condition:
           case: genitive
-        translation: "῾Ρώμης."
+        translation: "῾Ρώμης"
   - word: "Athens"
     context: "com.example.trip"
     controller:
@@ -229,6 +231,6 @@ words:
         translation: "Ἀθήνας"
       - condition:
           case: genitive
-        translation: "Ἀθήνων."
+        translation: "Ἀθήνων"
 ```
 
