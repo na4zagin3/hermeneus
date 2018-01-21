@@ -1,59 +1,96 @@
-name:                hermeneus
-version:             0.1.0.0
-synopsis:            Initial project template from stack
-description:         Please see README.md
-homepage:            https://github.com/githubuser/hermeneus#readme
-license:             BSD3
-license-file:        LICENSE
-author:              Noriaki Sakamoto
-maintainer:          noriaki@indeed.com
-copyright:           2016 Noriaki Sakamoto
-category:            Web, Language
-build-type:          Simple
--- extra-source-files:
-cabal-version:       >=1.10
+-- This file has been generated from package.yaml by hpack version 0.20.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 988e3a794d99b72fdf8e1e3548c934246d8e2c839bad9d14aa9199d78debe164
+
+name:           hermeneus
+version:        0.1.0.0
+synopsis:       A sophisticated message internationalization (i18n) library
+description:    Please see the README on Github at <https://github.com/na4zagin3/hermeneus#readme>
+category:       Language
+homepage:       https://github.com/githubuser/hermeneus#readme
+bug-reports:    https://github.com/githubuser/hermeneus/issues
+author:         Noriaki Sakamoto
+maintainer:     mrty.ityt.pt@gmail.com
+copyright:      2018 Noriaki Sakamoto
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+cabal-version:  >= 1.10
+
+extra-source-files:
+    ChangeLog.md
+    README.md
+
+source-repository head
+  type: git
+  location: https://github.com/githubuser/hermeneus
 
 library
-  hs-source-dirs:      src
-  exposed-modules:     Lib
-                       I18n.Hermeneus
-                       I18n.Hermeneus.Prim
-                       I18n.Hermeneus.Engine
-                       I18n.Hermeneus.Message
-                       I18n.Hermeneus.Database
-  build-depends:       base >= 4.7 && < 5
-                     , haxr >= 3000.11 && < 3000.12
-                     , yaml >= 0.8 && < 1
-                     , aeson >= 0.11 && < 1
-                     , text >= 1.2 && < 2
-                     , bytestring >= 0.10 && < 1
-                     , lens >= 4.13 && < 5
-                     , hxt >= 9.3 && < 10
-                     , HTF >= 0.13 && < 1
-                     , containers >= 0.5 && < 1
-                     , parsec >= 3.1 && < 4
-  default-language:    Haskell2010
+  hs-source-dirs:
+      src
+  build-depends:
+      HTF >=0.13 && <1
+    , aeson >=1.2 && <1.3
+    , base >=4.7 && <5
+    , bytestring >=0.10 && <1
+    , containers >=0.5 && <1
+    , haxr >=3000.11 && <3000.12
+    , lens >=4.13 && <5
+    , parsec >=3.1 && <4
+    , text >=1.2 && <2
+    , yaml >=0.8 && <1
+  exposed-modules:
+      I18n.Hermeneus
+      I18n.Hermeneus.Database
+      I18n.Hermeneus.Engine
+      I18n.Hermeneus.Message
+      I18n.Hermeneus.Prim
+      Lib
+  other-modules:
+      Paths_hermeneus
+  default-language: Haskell2010
 
 executable hermeneus-exe
-  hs-source-dirs:      app
-  main-is:             Main.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  build-depends:       base
-                     , hermeneus
-  default-language:    Haskell2010
+  main-is: Main.hs
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      HTF >=0.13 && <1
+    , aeson >=1.2 && <1.3
+    , base >=4.7 && <5
+    , bytestring >=0.10 && <1
+    , containers >=0.5 && <1
+    , haxr >=3000.11 && <3000.12
+    , hermeneus
+    , lens >=4.13 && <5
+    , parsec >=3.1 && <4
+    , text >=1.2 && <2
+    , yaml >=0.8 && <1
+  other-modules:
+      Paths_hermeneus
+  default-language: Haskell2010
 
 test-suite hermeneus-test
-  type:                exitcode-stdio-1.0
-  hs-source-dirs:      test
-  main-is:             Spec.hs
-  build-depends:       base
-                     , hermeneus
-                     , HUnit
-                     , QuickCheck
-                     , HTF == 0.13.*
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  default-language:    Haskell2010
-
--- source-repository head
---   type:     git
---   location: https://github.com/githubuser/hermeneus
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      HTF >=0.13 && <1
+    , aeson >=1.2 && <1.3
+    , base >=4.7 && <5
+    , bytestring >=0.10 && <1
+    , containers >=0.5 && <1
+    , haxr >=3000.11 && <3000.12
+    , hermeneus
+    , lens >=4.13 && <5
+    , parsec >=3.1 && <4
+    , text >=1.2 && <2
+    , yaml >=0.8 && <1
+  other-modules:
+      Paths_hermeneus
+  default-language: Haskell2010

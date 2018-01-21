@@ -1,6 +1,8 @@
-.stack-work
-.HTF
-TAGS
-.#*
-.*.sw?
+.stack-work/
+hermeneus.cabal
+
+# Swap files
 *~
+
+# Testing Framework
+.HTF
