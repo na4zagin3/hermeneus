@@ -1,10 +1,4 @@
-{-# OPTIONS_GHC -F -pgmF htfpp #-}
-
-module I18n.Hermeneus.Engine ( translateTemplates
-                             , translateMessage
-                             , htf_thisModulesTests
-                             )
-where
+module I18n.Hermeneus.Engine where
 
 import Control.Applicative
 import Data.Maybe
@@ -12,20 +6,15 @@ import Data.Set (Set)
 import qualified Data.Set as S
 import Data.Map (Map)
 import qualified Data.Map as M
-import           Test.Framework
 import I18n.Hermeneus.Prim
 import I18n.Hermeneus.Database
 import I18n.Hermeneus.Message
 
-import Text.Parsec (parse, ParseError)
+import Text.Parsec (parse)
 
 -- type StoredWordMap a = Map (String, String, Context)
 type StoredWordMap a = Map String a
 
-test_selectWord1, test_selectWord2, test_selectWord3 :: IO ()
-test_selectWord1 = assertEqual "a" $ selectWord (M.fromList []) [(FeatureCondition [], "a")]
-test_selectWord2 = assertEqual "a" $ selectWord (M.fromList [("n", "s")]) [(FeatureCondition [("n", "s")], "a"), (FeatureCondition [], "b")]
-test_selectWord3 = assertEqual "b" $ selectWord (M.fromList [("n", "d")]) [(FeatureCondition [("n", "s")], "a"), (FeatureCondition [], "b")]
 
 -- | Select word using features.
 -- If there are no candidates, the last candidate may be used.
@@ -39,14 +28,6 @@ selectDefaultWord :: [(FeatureCondition, String)] -> String
 selectDefaultWord [] = error "selectDefaultWord"
 selectDefaultWord ((_, w) : _) = w
 
-test_matchFeatureConstraint :: IO ()
-test_matchFeatureConstraint = do
-  assertEqual True $ matchFeatureConstraint (FeatureCondition []) $ M.fromList []
-  assertEqual False $ matchFeatureConstraint (FeatureCondition [("n", "s")]) $ M.fromList []
-  assertEqual True $ matchFeatureConstraint (FeatureCondition []) $ M.fromList [("n", "s")]
-  assertEqual True $ matchFeatureConstraint (FeatureCondition [("n", "s")]) $ M.fromList [("n", "s")]
-  assertEqual False $ matchFeatureConstraint (FeatureCondition [("n", "s")]) $ M.fromList [("n", "d")]
-
 matchFeatureConstraint :: FeatureCondition -> FeatureEnv -> Bool
 matchFeatureConstraint (FeatureCondition kvs) env = kvsMap `M.isSubmapOf` env
   where
@@ -57,12 +38,6 @@ wordFeatures (LocalizedWord fe fcss) = M.keysSet fe `S.union` S.unions (map (ext
   where
     extractFeatures (FeatureCondition fcs) = S.fromList $ map fst fcs
 
-  {-
-test_resolveFeatures :: IO ()
-test_resolveFeatures = do
-  assertEqual [("b", "c")] $ resolveFeatureConstraintExpr (WordKey "a") $ M.fromList [("a", M.fromList [("b", "c")])] 
-  assertEqual [("b", "c")] $ resolveFeatureConstraintExpr (WordKey "a") $ M.fromList [("a", M.fromList [("b", "c"), ("d", "e")])] 
--}
 
 -- |
 -- Positinally lefter constaint expression has priority.
@@ -94,18 +69,6 @@ resolveFeaturePlaceholder argEnvs storedWordEnvs (wref, fces) = do
 
 maybeToEither :: s -> Maybe a -> Either s a
 maybeToEither = flip maybe Right . Left
-
-test_translatePlaceholders :: IO ()
-test_translatePlaceholders = do
-  assertEqual (Right []) $ translatePlaceholders [] M.empty []
-  assertEqual (Right ["a"]) $ translatePlaceholders [(PlaceholderNumber 0, [])] M.empty [LocalizedWord M.empty [(FeatureCondition [], "a")]]
-  let placeholders = [(PlaceholderNumber 1, [FeatureConstraintExpr numberFeature (ConcordWord (PlaceholderNumber 0))]), (PlaceholderNumber 0, [])]
-  let word1 = LocalizedWord (M.fromList [(numberFeature, singularValue)]) [(FeatureCondition [], "one")]
-  let wordCar = LocalizedWord (M.fromList []) [ (FeatureCondition [(numberFeature, singularValue)], "car")
-                                                 , (FeatureCondition [(numberFeature, singularValue)], "cars")
-                                                 ]
-  let argument1 = [ word1, wordCar ]
-  assertEqual (Right ["one", "car"]) $ translatePlaceholders placeholders M.empty argument1
 
 translatePlaceholders :: [Placeholder] -> StoredWordMap LocalizedWord -> [LocalizedWord] -> Either String [String]
 translatePlaceholders phs storedWords args = do

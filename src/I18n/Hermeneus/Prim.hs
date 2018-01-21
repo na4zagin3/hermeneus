@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -F -pgmF htfpp #-}
-
 module I18n.Hermeneus.Prim where
 
 import Data.Fixed
@@ -8,7 +6,6 @@ import Data.Set (Set)
 import qualified Data.Set as S
 import Data.Map (Map)
 import qualified Data.Map as M
-import           Test.Framework
 
 --
 -- Message translation data

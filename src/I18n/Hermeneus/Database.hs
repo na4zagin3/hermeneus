@@ -1,6 +1,4 @@
 {-# LANGUAGE TemplateHaskell #-}
-{-# OPTIONS_GHC -F -pgmF htfpp #-}
-
 module I18n.Hermeneus.Database ( Database
                                , Context
                                , LangInfo
@@ -10,7 +8,6 @@ module I18n.Hermeneus.Database ( Database
                                , localizeArgument
                                , exampleDB
                                , exampleEn
-                               , htf_thisModulesTests
                                )
 where
 
@@ -19,7 +16,6 @@ import Data.Set (Set)
 import qualified Data.Set as S
 import Data.Map (Map)
 import qualified Data.Map as M
-import           Test.Framework
 
 import Data.Aeson.TH
 

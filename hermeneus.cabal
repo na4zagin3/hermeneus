@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 988e3a794d99b72fdf8e1e3548c934246d8e2c839bad9d14aa9199d78debe164
+-- hash: 9e53beacaf5f76c63c435d08efccb2ef7f3edd3d4fb85fd3ce947a215e5191a1
 
 name:           hermeneus
 version:        0.1.0.0
@@ -31,12 +31,10 @@ library
   hs-source-dirs:
       src
   build-depends:
-      HTF >=0.13 && <1
-    , aeson >=1.2 && <1.3
+      aeson >=1.2 && <1.3
     , base >=4.7 && <5
     , bytestring >=0.10 && <1
     , containers >=0.5 && <1
-    , haxr >=3000.11 && <3000.12
     , lens >=4.13 && <5
     , parsec >=3.1 && <4
     , text >=1.2 && <2
@@ -58,12 +56,10 @@ executable hermeneus-exe
       app
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      HTF >=0.13 && <1
-    , aeson >=1.2 && <1.3
+      aeson >=1.2 && <1.3
     , base >=4.7 && <5
     , bytestring >=0.10 && <1
     , containers >=0.5 && <1
-    , haxr >=3000.11 && <3000.12
     , hermeneus
     , lens >=4.13 && <5
     , parsec >=3.1 && <4
@@ -80,17 +76,24 @@ test-suite hermeneus-test
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      HTF >=0.13 && <1
+      Glob
     , aeson >=1.2 && <1.3
     , base >=4.7 && <5
     , bytestring >=0.10 && <1
     , containers >=0.5 && <1
-    , haxr >=3000.11 && <3000.12
+    , doctest
     , hermeneus
     , lens >=4.13 && <5
     , parsec >=3.1 && <4
+    , tasty
+    , tasty-discover
+    , tasty-hspec
+    , tasty-hunit
     , text >=1.2 && <2
     , yaml >=0.8 && <1
   other-modules:
+      DocTests
+      I18n.Hermeneus.EngineSpec
+      I18n.Hermeneus.MessageSpec
       Paths_hermeneus
   default-language: Haskell2010
