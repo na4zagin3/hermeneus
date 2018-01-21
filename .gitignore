@@ -3,6 +3,7 @@ hermeneus.cabal
 
 # Swap files
 *~
+.#*
 
 # Testing Framework
 .HTF
