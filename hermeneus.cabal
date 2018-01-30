@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9e53beacaf5f76c63c435d08efccb2ef7f3edd3d4fb85fd3ce947a215e5191a1
+-- hash: ff7290aa29806dc02a6596735b752f079882407731b2e96e80d8751cbe7561e5
 
 name:           hermeneus
 version:        0.1.0.0
@@ -37,6 +37,8 @@ library
     , containers >=0.5 && <1
     , lens >=4.13 && <5
     , parsec >=3.1 && <4
+    , parsers
+    , syb
     , text >=1.2 && <2
     , yaml >=0.8 && <1
   exposed-modules:
@@ -44,6 +46,7 @@ library
       I18n.Hermeneus.Database
       I18n.Hermeneus.Engine
       I18n.Hermeneus.Message
+      I18n.Hermeneus.NumberHandling
       I18n.Hermeneus.Prim
       Lib
   other-modules:
@@ -63,6 +66,8 @@ executable hermeneus-exe
     , hermeneus
     , lens >=4.13 && <5
     , parsec >=3.1 && <4
+    , parsers
+    , syb
     , text >=1.2 && <2
     , yaml >=0.8 && <1
   other-modules:
@@ -82,18 +87,23 @@ test-suite hermeneus-test
     , bytestring >=0.10 && <1
     , containers >=0.5 && <1
     , doctest
+    , generic-random
     , hermeneus
     , lens >=4.13 && <5
     , parsec >=3.1 && <4
+    , parsers
+    , syb
     , tasty
     , tasty-discover
     , tasty-hspec
     , tasty-hunit
+    , tasty-quickcheck
     , text >=1.2 && <2
     , yaml >=0.8 && <1
   other-modules:
       DocTests
       I18n.Hermeneus.EngineSpec
       I18n.Hermeneus.MessageSpec
+      I18n.Hermeneus.NumberHandlingSpec
       Paths_hermeneus
   default-language: Haskell2010

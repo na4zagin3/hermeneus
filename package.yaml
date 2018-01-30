@@ -28,6 +28,8 @@ dependencies:
 - lens >= 4.13 && < 5
 - containers >= 0.5 && < 1
 - parsec >= 3.1 && < 4
+- parsers
+- syb
 
 library:
   source-dirs: src
@@ -59,3 +61,5 @@ tests:
     - tasty-discover
     - tasty-hunit
     - tasty-hspec
+    - tasty-quickcheck
+    - generic-random
