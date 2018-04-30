@@ -33,7 +33,6 @@ exampleDB = M.fromList [("en", exampleEn)]
 exampleEn = TranslationSet { langInfo = LangInfo { numberHandling = numberHandlingEn }
                            , translationSentences = M.fromList [ ]
                            , translationWords = M.fromList [ ]
-
                            }
 
 getEnglishWordTranslation :: String -> String -> LocalizedWord

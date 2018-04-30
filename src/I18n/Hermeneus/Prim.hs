@@ -7,6 +7,8 @@ import qualified Data.Set as S
 import Data.Map (Map)
 import qualified Data.Map as M
 
+import qualified I18n.Hermeneus.NumberHandling as NH
+
 --
 -- Message translation data
 --
@@ -65,71 +67,41 @@ type Database = Map Locale TranslationSet
 --
 data MessageKey = MessageKey String Context
   deriving (Eq, Ord, Read, Show)
-data MessageArg = ArgNumber Double
+data MessageArg = ArgNumber Integer -- ToDo: Support decimals
                 | ArgString String
                 | ArgWord String String Context
   deriving (Eq, Ord, Read, Show)
+
+data NumberHandling = NumberHandling { numberDefaultFeature :: FeatureId -- ToDo: Isn't it FeatureValue?
+                                     , numberExpressions :: [(NH.Expr, FeatureId)] -- ToDo: Isn't it FeatureValue?
+                                     }
+  deriving (Eq, Ord, Show, Read)
+
+numberHandlingEn, numberHandlingJa, numberHandlingGrc :: NumberHandling
+numberHandlingEn = NumberHandling pluralValue [(NH.EEq NH.ETarget $ NH.ENumber 1, singularValue)]
+numberHandlingJa = NumberHandling noneValue []
+numberHandlingGrc = NumberHandling pluralValue [(NH.EEq NH.ETarget $ NH.ENumber 1, singularValue), (NH.EEq NH.ETarget $ NH.ENumber 2, dualValue)]
+
+-- Todo locale specific number format
+translateNumber :: LangInfo -> Integer -> LocalizedWord
+translateNumber li x = LocalizedWord (M.singleton "number" $ determineNumber x $ numberHandling li) [(FeatureCondition [], show x)]
+
+determineNumber :: Integer -> NumberHandling -> FeatureId
+determineNumber x (NumberHandling d cs) = determineNumberWithCond x d cs
+
+determineNumberWithCond :: Integer -> FeatureId -> [(NH.Expr, FeatureId)] -> FeatureId
+determineNumberWithCond _ d [] = d
+determineNumberWithCond x d ((c, f) : cs) | NH.evalCond x c = f
+                                          | otherwise = determineNumberWithCond x d cs
 
 --
 -- Language feature data
 --
 
 data LangInfo = LangInfo { numberHandling :: NumberHandling
+                         -- ToDo: Static check of features.
                          }
   deriving (Eq, Ord, Show, Read)
-
-data NumberHandling = NumberHandling FeatureId [(NumberHandlingCond, FeatureId)]
-  deriving (Eq, Ord, Show, Read)
-
-data NumberHandlingCond = NHEqual NumberHandlingExpr NumberHandlingExpr
-                        | NHGreater NumberHandlingExpr NumberHandlingExpr
-                        | NHGreaterEqual NumberHandlingExpr NumberHandlingExpr
-                        | NHLess NumberHandlingExpr NumberHandlingExpr
-                        | NHLessEqual NumberHandlingExpr NumberHandlingExpr
-  deriving (Eq, Ord, Show, Read)
-
-data NumberHandlingExpr = NHTarget
-                        | NHNum Rational
-                        | NHAdd NumberHandlingExpr NumberHandlingExpr
-                        | NHSub NumberHandlingExpr NumberHandlingExpr
-                        | NHMul NumberHandlingExpr NumberHandlingExpr
-                        | NHDiv NumberHandlingExpr NumberHandlingExpr
-                        | NHMod NumberHandlingExpr NumberHandlingExpr
-  deriving (Eq, Ord, Show, Read)
-
-numberHandlingEn, numberHandlingJa, numberHandlingGrc :: NumberHandling
-numberHandlingEn = NumberHandling pluralValue [(NHEqual NHTarget $ NHNum 1, singularValue)]
-numberHandlingJa = NumberHandling noneValue []
-numberHandlingGrc = NumberHandling pluralValue [(NHEqual NHTarget $ NHNum 1, singularValue), (NHEqual NHTarget $ NHNum 2, dualValue)]
-
--- Todo locale specific number format
-translateNumber :: (Num a, Eq a, Ord a, Real a, Fractional a, Show a)=> LangInfo -> a -> LocalizedWord
-translateNumber li x = LocalizedWord (M.singleton "number" $ determineNumber x $ numberHandling li) [(FeatureCondition [], show x)]
-
-determineNumber :: (Num a, Eq a, Ord a, Real a, Fractional a)=> a -> NumberHandling -> FeatureId
-determineNumber x (NumberHandling d cs) = determineNumberWithCond x d cs
-
-determineNumberWithCond :: (Num a, Eq a, Ord a, Real a, Fractional a)=> a -> FeatureId -> [(NumberHandlingCond, FeatureId)] -> FeatureId
-determineNumberWithCond _ d [] = d
-determineNumberWithCond x d ((c, f) : cs) | evalNumberHandlingCond x c = f
-                                          | otherwise = determineNumberWithCond x d cs
-
-evalNumberHandlingCond :: (Num a, Eq a, Ord a, Real a, Fractional a)=> a -> NumberHandlingCond -> Bool
-evalNumberHandlingCond x (NHEqual a b) = evalNumberHandlingExpr x a == evalNumberHandlingExpr x b
-evalNumberHandlingCond x (NHGreater a b) = evalNumberHandlingExpr x a > evalNumberHandlingExpr x b
-evalNumberHandlingCond x (NHGreaterEqual a b) = evalNumberHandlingExpr x a >= evalNumberHandlingExpr x b
-evalNumberHandlingCond x (NHLess a b) = evalNumberHandlingExpr x a < evalNumberHandlingExpr x b
-evalNumberHandlingCond x (NHLessEqual a b) = evalNumberHandlingExpr x a <= evalNumberHandlingExpr x b
-
-evalNumberHandlingExpr :: (Num a, Real a, Fractional a)=> a -> NumberHandlingExpr -> a
-evalNumberHandlingExpr x NHTarget = x
-evalNumberHandlingExpr _ (NHNum n) = fromRational n
-evalNumberHandlingExpr x (NHAdd a b) = evalNumberHandlingExpr x a + evalNumberHandlingExpr x b
-evalNumberHandlingExpr x (NHSub a b) = evalNumberHandlingExpr x a - evalNumberHandlingExpr x b
-evalNumberHandlingExpr x (NHMul a b) = evalNumberHandlingExpr x a * evalNumberHandlingExpr x b
-evalNumberHandlingExpr x (NHDiv a b) = evalNumberHandlingExpr x a / evalNumberHandlingExpr x b
-evalNumberHandlingExpr x (NHMod a b) = evalNumberHandlingExpr x a `mod'` evalNumberHandlingExpr x b
-
 
 --
 -- Translation words
