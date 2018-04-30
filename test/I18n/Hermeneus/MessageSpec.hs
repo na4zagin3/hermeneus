@@ -20,6 +20,7 @@ unit_parseTranslationHank = do
   parse parseTranslationHank "" "{0:number#2}" @?= (Right $ Placeholder (PlaceholderNumber 0, [FeatureConstraintExpr "number" $ ConcordWord $ PlaceholderNumber 2]))
   parse parseTranslationHank "" "{*to:number#2}" @?= (Right $ Placeholder (WordKey "to", [FeatureConstraintExpr "number" $ ConcordWord $ PlaceholderNumber 2]))
   parse parseTranslationHank "" "{0:number=singular}" @?= (Right $ Placeholder (PlaceholderNumber 0, [FeatureConstraintExpr "number" $ Feature "singular"]))
+  parse parseTranslationHank "" "{0:number=singular,gender=female}" @?= (Right $ Placeholder (PlaceholderNumber 0, [FeatureConstraintExpr "number" $ Feature "singular", FeatureConstraintExpr "gender" $ Feature "female"]))
 
 
 unit_parseTranslationTemplate = do

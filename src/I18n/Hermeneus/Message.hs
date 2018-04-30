@@ -29,7 +29,7 @@ parsePlaceholder :: Stream s m Char => ParsecT s u m TranslationHank
 parsePlaceholder = do
   string "{"
   wRef <- parseWordReference
-  exprs <- option [] $ string ":" *> many parseFeatureConstraintExpr
+  exprs <- option [] $ string ":" *> many (parseFeatureConstraintExpr <* option [] (string ","))
   string "}"
   return $ Placeholder (wRef, exprs)
 
