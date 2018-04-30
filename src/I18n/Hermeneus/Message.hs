@@ -34,7 +34,7 @@ parsePlaceholder = do
   return $ Placeholder (wRef, exprs)
 
 parseTranslatedString :: Stream s m Char => ParsecT s u m TranslationHank
-parseTranslatedString = TranslatedString <$> many1 parseTranslatedStringChar
+parseTranslatedString = TranslatedString . nonEmptyStringFromString <$> many1 parseTranslatedStringChar
 
 parseTranslatedStringChar :: Stream s m Char => ParsecT s u m Char
 parseTranslatedStringChar = try escapedBrace <|> noneOf "{}"
@@ -48,7 +48,9 @@ parseWordReference = parseWord <|> parseNumber
     parseNumber = PlaceholderNumber . read <$> many1 digit
     parseWord = do
       string "*"
-      fmap WordKey . many $ noneOf ":"
+      (fmap WordKey . many $ (try escapedStar <|> noneOf "*")) <* string "*"
+    escapedStar :: Stream s m Char => ParsecT s u m Char
+    escapedStar = string "**" $> '*'
 
 parseFeatureConstraintExpr :: Stream s m Char => ParsecT s u m FeatureConstraintExpr
 parseFeatureConstraintExpr = do
@@ -57,10 +59,10 @@ parseFeatureConstraintExpr = do
   return $ FeatureConstraintExpr i expr
 
 parseFeatureId :: Stream s m Char => ParsecT s u m FeatureId
-parseFeatureId = many1 alphaNum
+parseFeatureId = featureIdFromString <$> many1 alphaNum
 
 parseFeatureValue :: Stream s m Char => ParsecT s u m FeatureValue
-parseFeatureValue = many1 alphaNum
+parseFeatureValue = featureValueFromString <$> many1 alphaNum
 
 parseFeatureReferenceExpr :: Stream s m Char => ParsecT s u m FeatureReferenceExpr
 parseFeatureReferenceExpr = parseConcordWord <|> parseFeature
@@ -98,7 +100,10 @@ printPlaceholder (wr, fces) = mconcat [ "{"
 
 printWordReference ::  (IsString s, Semigroup s, Monoid s) => WordReference -> s
 printWordReference (PlaceholderNumber n) = fromString $ show n
-printWordReference (WordKey w) = "*" <> fromString w
+printWordReference (WordKey w) = "*" <> fromString (concatMap escapeStar w) <> "*"
+  where
+    escapeStar '*' = "**"
+    escapeStar x = [x]
 
 printFeatureConstraintExpr :: (IsString s, Semigroup s, Monoid s) => FeatureConstraintExpr -> s
 printFeatureConstraintExpr (FeatureConstraintExpr i e) = printFeatureId i <> printFeatureReferenceExpr e
@@ -108,7 +113,7 @@ printFeatureReferenceExpr (ConcordWord w) = "#" <> printWordReference w
 printFeatureReferenceExpr (Feature f) = "=" <> printFeatureValue f
 
 printFeatureId :: (IsString s, Semigroup s, Monoid s) => FeatureId -> s
-printFeatureId = fromString
+printFeatureId = fromString . nonEmptyStringToString
 
 printFeatureValue :: (IsString s, Semigroup s, Monoid s) => FeatureValue -> s
-printFeatureValue = fromString
+printFeatureValue = fromString . nonEmptyStringToString

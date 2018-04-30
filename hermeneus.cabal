@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ff7290aa29806dc02a6596735b752f079882407731b2e96e80d8751cbe7561e5
+-- hash: b29f826dbfc9e89a28d0d12d774432ec017221eaf73c44b2b5b34283b207d5e2
 
 name:           hermeneus
 version:        0.1.0.0
@@ -92,6 +92,7 @@ test-suite hermeneus-test
     , lens >=4.13 && <5
     , parsec >=3.1 && <4
     , parsers
+    , quickcheck-unicode
     , syb
     , tasty
     , tasty-discover

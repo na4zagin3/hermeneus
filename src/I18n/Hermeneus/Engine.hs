@@ -82,27 +82,25 @@ translatePlaceholders phs storedWords args = do
 
 translateTemplates :: TranslationTemplate -> StoredWordMap LocalizedWord -> [LocalizedWord] -> Either String [String]
 translateTemplates (TranslationTemplate tts) storedWords args = do
-    featureEnvs <- mapM (resolveFeaturePlaceholder argEnvs storedWordEnvs) phs
-    f featureEnvs tts
+  featureEnvs <- mapM (resolveFeaturePlaceholder argEnvs storedWordEnvs) phs
+  f featureEnvs tts
   where
     featureEnv (LocalizedWord fe _) = fe
     wordTranslation (LocalizedWord _ wts) = wts
     isPlaceholder (Placeholder ph) = Just ph
     isPlaceholder (TranslatedString _) = Nothing
-
     phs = mapMaybe isPlaceholder tts
     argEnvs = map featureEnv args
     storedWordEnvs = M.map featureEnv storedWords
     wordTranslations = map wordTranslation args
     storedWordTranslations = M.map wordTranslation storedWords
-
     -- translateTemplate :: FeatureEnv -> Placeholder -> LocalizedWord -> Either String String
     translateTemplate :: FeatureEnv -> Placeholder -> [(FeatureCondition, String)] -> Either String String
     translateTemplate env _ wts = return $ selectWord env wts
     f :: [FeatureEnv] -> [TranslationHank] -> Either String [String]
-    f _ [] = pure $ []
-    f envs (TranslatedString str : ts) = (str :) <$> f envs ts
-    f (env : envs) (Placeholder ph@(wref, _) : ts) = do
+    f _ [] = pure []
+    f envs (TranslatedString str:ts) = (nonEmptyStringToString str :) <$> f envs ts
+    f (env:envs) (Placeholder ph@(wref, _):ts) = do
       w <- derefWordReference wordTranslations storedWordTranslations wref
       tstr <- translateTemplate env ph w
       (tstr :) <$> f envs ts

@@ -63,3 +63,4 @@ tests:
     - tasty-hspec
     - tasty-quickcheck
     - generic-random
+    - quickcheck-unicode

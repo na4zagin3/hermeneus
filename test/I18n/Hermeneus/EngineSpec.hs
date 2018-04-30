@@ -7,18 +7,24 @@ import Test.Tasty.HUnit
 
 import I18n.Hermeneus.Engine
 
+{-# ANN module "HLint: ignore Use camelCase" #-}
+
+n = featureValueFromString "n"
+s = featureValueFromString "s"
+d = featureValueFromString "d"
+
 unit_selectWord1, unit_selectWord2, unit_selectWord3 :: IO ()
 unit_selectWord1 = selectWord (M.fromList []) [(FeatureCondition [], "a")] @?= "a"
-unit_selectWord2 = selectWord (M.fromList [("n", "s")]) [(FeatureCondition [("n", "s")], "a"), (FeatureCondition [], "b")] @?= "a"
-unit_selectWord3 = selectWord (M.fromList [("n", "d")]) [(FeatureCondition [("n", "s")], "a"), (FeatureCondition [], "b")] @?= "b"
+unit_selectWord2 = selectWord (M.fromList [(n, s)]) [(FeatureCondition [(n, s)], "a"), (FeatureCondition [], "b")] @?= "a"
+unit_selectWord3 = selectWord (M.fromList [(n, d)]) [(FeatureCondition [(n, s)], "a"), (FeatureCondition [], "b")] @?= "b"
 
 unit_matchFeatureConstraint :: IO ()
 unit_matchFeatureConstraint = do
   matchFeatureConstraint (FeatureCondition []) (M.fromList []) @?= True
-  matchFeatureConstraint (FeatureCondition [("n", "s")]) (M.fromList []) @?= False
-  matchFeatureConstraint (FeatureCondition []) (M.fromList [("n", "s")]) @?= True
-  matchFeatureConstraint (FeatureCondition [("n", "s")]) (M.fromList [("n", "s")]) @?= True
-  matchFeatureConstraint (FeatureCondition [("n", "s")]) (M.fromList [("n", "d")]) @?= False
+  matchFeatureConstraint (FeatureCondition [(n, s)]) (M.fromList []) @?= False
+  matchFeatureConstraint (FeatureCondition []) (M.fromList [(n, s)]) @?= True
+  matchFeatureConstraint (FeatureCondition [(n, s)]) (M.fromList [(n, s)]) @?= True
+  matchFeatureConstraint (FeatureCondition [(n, s)]) (M.fromList [(n, d)]) @?= False
 
 -- unit_resolveFeatures :: IO ()
 -- unit_resolveFeatures = do
