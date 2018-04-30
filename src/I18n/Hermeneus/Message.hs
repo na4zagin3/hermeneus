@@ -1,9 +1,10 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts, OverloadedStrings #-}
 
 module I18n.Hermeneus.Message where
 
 import Control.Applicative ((<$>))
 import Data.Functor
+import Data.List (intersperse)
 import Data.Maybe
 import Data.Semigroup (Semigroup, (<>))
 import Data.Set (Set)
@@ -72,3 +73,42 @@ parseFeatureReferenceExpr = parseConcordWord <|> parseFeature
       string "="
       value <- parseFeatureValue
       return $ Feature value
+
+
+printTranslationTemplate :: (IsString s, Semigroup s, Monoid s) => TranslationTemplate -> s
+printTranslationTemplate (TranslationTemplate hs) = mconcat $ map printTranslationHank hs
+
+printTranslationHank :: (IsString s, Semigroup s, Monoid s) => TranslationHank -> s
+printTranslationHank (TranslatedString s) = fromString $ concatMap escapeBrace s
+  where
+    escapeBrace x | x == '{' || x == '}' = [x, x]
+    escapeBrace x = [x]
+printTranslationHank (Placeholder p) = printPlaceholder p
+
+printPlaceholder :: (IsString s, Semigroup s, Monoid s) => Placeholder -> s
+printPlaceholder (wr, fces) = mconcat [ "{"
+                                      , printWordReference wr
+                                      , if null fces
+                                        then mempty
+                                        else ":" <> fstr
+                                      , "}"
+                                      ]
+  where
+    fstr = mconcat $ intersperse "," $ map printFeatureConstraintExpr fces
+
+printWordReference ::  (IsString s, Semigroup s, Monoid s) => WordReference -> s
+printWordReference (PlaceholderNumber n) = fromString $ show n
+printWordReference (WordKey w) = "*" <> fromString w
+
+printFeatureConstraintExpr :: (IsString s, Semigroup s, Monoid s) => FeatureConstraintExpr -> s
+printFeatureConstraintExpr (FeatureConstraintExpr i e) = printFeatureId i <> printFeatureReferenceExpr e
+
+printFeatureReferenceExpr :: (IsString s, Semigroup s, Monoid s) => FeatureReferenceExpr -> s
+printFeatureReferenceExpr (ConcordWord w) = "#" <> printWordReference w
+printFeatureReferenceExpr (Feature f) = "=" <> printFeatureValue f
+
+printFeatureId :: (IsString s, Semigroup s, Monoid s) => FeatureId -> s
+printFeatureId = fromString
+
+printFeatureValue :: (IsString s, Semigroup s, Monoid s) => FeatureValue -> s
+printFeatureValue = fromString

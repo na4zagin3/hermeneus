@@ -35,3 +35,14 @@ unit_parseTranslationTemplate = do
          (PlaceholderNumber 1,
           [FeatureConstraintExpr "number" $ Feature "singular"])
       ])
+
+unit_printTranslationHank = do
+  printTranslationHank (TranslatedString "abc") @?= "abc"
+  printTranslationHank (TranslatedString "{") @?= "{{"
+  printTranslationHank (TranslatedString "a{c") @?= "a{{c"
+  printTranslationHank (TranslatedString "a{c}") @?= "a{{c}}"
+  printTranslationHank (Placeholder (PlaceholderNumber 1, [])) @?= "{1}"
+  printTranslationHank (Placeholder (PlaceholderNumber 0, [FeatureConstraintExpr "number" $ ConcordWord $ PlaceholderNumber 2])) @?= "{0:number#2}"
+  printTranslationHank (Placeholder (WordKey "to", [FeatureConstraintExpr "number" $ ConcordWord $ PlaceholderNumber 2])) @?= "{*to:number#2}"
+  printTranslationHank (Placeholder (PlaceholderNumber 0, [FeatureConstraintExpr "number" $ Feature "singular"])) @?= "{0:number=singular}"
+  printTranslationHank (Placeholder (PlaceholderNumber 0, [FeatureConstraintExpr "number" $ Feature "singular", FeatureConstraintExpr "gender" $ Feature "female"])) @?= "{0:number=singular,gender=female}"
