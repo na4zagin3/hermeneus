@@ -13,13 +13,13 @@ import Text.Parsec
 import I18n.Hermeneus.Prim
 
 
-parseTranslationMessage :: Stream s m Char => ParsecT s u m [TranslationTemplate]
-parseTranslationMessage = many parseTranslationTemplate
-
 parseTranslationTemplate :: Stream s m Char => ParsecT s u m TranslationTemplate
-parseTranslationTemplate = parsePlaceholder <|> parseTranslatedString
+parseTranslationTemplate = TranslationTemplate <$> many parseTranslationHank
 
-parsePlaceholder :: Stream s m Char => ParsecT s u m TranslationTemplate
+parseTranslationHank :: Stream s m Char => ParsecT s u m TranslationHank
+parseTranslationHank = parsePlaceholder <|> parseTranslatedString
+
+parsePlaceholder :: Stream s m Char => ParsecT s u m TranslationHank
 parsePlaceholder = do
   string "{"
   wRef <- parseWordReference
@@ -27,7 +27,7 @@ parsePlaceholder = do
   string "}"
   return $ Placeholder (wRef, exprs)
 
-parseTranslatedString :: Stream s m Char => ParsecT s u m TranslationTemplate
+parseTranslatedString :: Stream s m Char => ParsecT s u m TranslationHank
 parseTranslatedString = fmap TranslatedString $ many1 $ noneOf "{}"
 
 parseWordReference :: Stream s m Char => ParsecT s u m WordReference

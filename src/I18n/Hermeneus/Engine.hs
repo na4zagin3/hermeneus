@@ -80,8 +80,8 @@ translatePlaceholders phs storedWords args = do
     featureEnvs <- mapM (resolveFeaturePlaceholder argEnvs storedWordEnvs) phs
     return $ zipWith selectWord featureEnvs wordTranslations
 
-translateTemplates :: [TranslationTemplate] -> StoredWordMap LocalizedWord -> [LocalizedWord] -> Either String [String]
-translateTemplates tts storedWords args = do
+translateTemplates :: TranslationTemplate -> StoredWordMap LocalizedWord -> [LocalizedWord] -> Either String [String]
+translateTemplates (TranslationTemplate tts) storedWords args = do
     featureEnvs <- mapM (resolveFeaturePlaceholder argEnvs storedWordEnvs) phs
     f featureEnvs tts
   where
@@ -99,7 +99,7 @@ translateTemplates tts storedWords args = do
     -- translateTemplate :: FeatureEnv -> Placeholder -> LocalizedWord -> Either String String
     translateTemplate :: FeatureEnv -> Placeholder -> [(FeatureCondition, String)] -> Either String String
     translateTemplate env _ wts = return $ selectWord env wts
-    f :: [FeatureEnv] -> [TranslationTemplate] -> Either String [String]
+    f :: [FeatureEnv] -> [TranslationHank] -> Either String [String]
     f _ [] = pure $ []
     f envs (TranslatedString str : ts) = (str :) <$> f envs ts
     f (env : envs) (Placeholder ph@(wref, _) : ts) = do
@@ -123,8 +123,8 @@ translateMessage db l (MessageKey s c) as = do
   let locale = if isTranslatable then l else "en"
   ts <- maybeToEither "A" $ M.lookup locale db
   let localizedWords = map (localizeArgument ts) as
-  let defaultTemplate = mapLeft show $ parse parseTranslationMessage "translateMessage" s :: Either String [TranslationTemplate]
-  let localizedTemplate = maybeToEither "B" $ getLocalizedTemplate ts (s, c) :: Either String [TranslationTemplate]
+  let defaultTemplate = mapLeft show $ parse parseTranslationTemplate "translateTemplate" s :: Either String TranslationTemplate
+  let localizedTemplate = maybeToEither "B" $ getLocalizedTemplate ts (s, c) :: Either String TranslationTemplate
   localizedTemplate <- localizedTemplate <|> defaultTemplate
   let storedWord = M.fromList . map (\((s, p, c), x) -> (s ++ "." ++ p, x)) $ M.toList $ translationWords ts
   concat <$> translateTemplates localizedTemplate storedWord localizedWords

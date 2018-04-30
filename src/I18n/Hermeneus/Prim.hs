@@ -22,8 +22,11 @@ type FeatureEnv = Map FeatureId FeatureValue
 data FeatureCondition = FeatureCondition [FeaturePair]
   deriving (Eq, Ord, Show, Read)
 
-data TranslationTemplate = TranslatedString String
-                         | Placeholder Placeholder
+newtype TranslationTemplate = TranslationTemplate [TranslationHank]
+  deriving (Eq, Ord, Show, Read)
+
+data TranslationHank = TranslatedString String
+                     | Placeholder Placeholder
   deriving (Eq, Ord, Show, Read)
 
 type Placeholder = (WordReference, [FeatureConstraintExpr])
@@ -52,7 +55,7 @@ data LocalizedWord = LocalizedWord FeatureEnv [(FeatureCondition, String)]
 
 type Context = String
 data TranslationSet = TranslationSet { langInfo :: LangInfo
-                                     , translationSentences :: Map (String, Context) [TranslationTemplate]
+                                     , translationSentences :: Map (String, Context) TranslationTemplate
                                      , translationWords :: Map (String, String, Context) LocalizedWord
                                      }
   deriving (Eq, Ord, Show, Read)

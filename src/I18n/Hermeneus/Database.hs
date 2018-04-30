@@ -46,7 +46,7 @@ getEnglishWordTranslation singular plural = LocalizedWord featureEnv forms
 getLocalizedWord :: TranslationSet -> (String, String, Context) -> Maybe LocalizedWord
 getLocalizedWord ts k = M.lookup k $ translationWords ts
 
-getLocalizedTemplate :: TranslationSet -> (String, Context) -> Maybe [TranslationTemplate]
+getLocalizedTemplate :: TranslationSet -> (String, Context) -> Maybe TranslationTemplate
 getLocalizedTemplate ts k = M.lookup k $ translationSentences ts
 
 -- todo: move?
