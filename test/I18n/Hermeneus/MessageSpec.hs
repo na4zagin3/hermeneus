@@ -13,6 +13,7 @@ import Test.Tasty.HUnit
 import Test.Tasty.Hspec
 import Test.Tasty.QuickCheck
 import qualified Test.QuickCheck.Unicode as QU
+import I18n.Hermeneus.ArbitraryInstances
 
 import I18n.Hermeneus.Prim
 import I18n.Hermeneus.Message
@@ -101,43 +102,6 @@ unit_printTranslationHank = do
   printTranslationHank (Placeholder (PlaceholderNumber 0, [FeatureConstraintExpr numberFeature $ Feature singularValue])) @?= "{0:number=singular}"
   printTranslationHank (Placeholder (PlaceholderNumber 0, [FeatureConstraintExpr numberFeature $ Feature singularValue, FeatureConstraintExpr genderFeature $ Feature feminineValue])) @?= "{0:number=singular,gender=feminine}"
 
-
-genAlphaNumChar :: Gen Char
-genAlphaNumChar = elements $ ['a'..'z'] ++ ['A'..'Z'] ++ ['0'..'9']
-
-genNonEmptyAlphaNumString :: Gen String
-genNonEmptyAlphaNumString = listOf1 genAlphaNumChar
-
-instance (Arbitrary a) => Arbitrary (NEL.NonEmpty a) where
-  arbitrary = NEL.fromList <$> listOf1 arbitrary
-  shrink = genericShrink
-
-instance Arbitrary WordReference where
-  arbitrary = oneof [ PlaceholderNumber . getNonNegative <$> arbitrary
-                    , WordKey <$> QU.string
-                    ]
-  shrink = genericShrink
-
-instance (Arbitrary FeatureConstraintExpr) where
-  arbitrary = do
-    f <- nonEmptyStringFromString <$> genNonEmptyAlphaNumString
-    expr <- arbitrary
-    return $ FeatureConstraintExpr f expr
-  shrink = genericShrink
-
-instance (Arbitrary FeatureReferenceExpr) where
-  arbitrary = oneof [ ConcordWord <$> arbitrary
-                    , Feature . nonEmptyStringFromString <$> genNonEmptyAlphaNumString
-                    ]
-
-instance (Arbitrary TranslationHank) where
-  arbitrary = oneof [ TranslatedString <$> return (nonEmptyStringFromString "a")
-                    , Placeholder <$> arbitrary
-                    ]
-
-instance (Arbitrary TranslationTemplate) where
-  arbitrary = genericArbitrary' uniform
-  shrink = genericShrink
 
 testIfParserSection name parser printer expr = parse parser ("parse " <> name) (printer expr :: Text) == Right expr
 
