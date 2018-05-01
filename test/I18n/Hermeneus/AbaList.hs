@@ -4,7 +4,7 @@ module I18n.Hermeneus.AbaList where
 
 import Control.Arrow
 import Data.Typeable
-import Generic.Random
+import Generic.Random (genericArbitrary', uniform)
 import GHC.Generics (Generic)
 
 import Test.Tasty.QuickCheck
