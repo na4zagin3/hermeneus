@@ -115,4 +115,4 @@ prop_TranslationHank_parser_section :: TranslationHank -> Bool
 prop_TranslationHank_parser_section = testIfParserSection "TranslationHank" parseTranslationHank printTranslationHank
 
 prop_TranslationTemplate_parser_section :: TranslationTemplate -> Bool
-prop_TranslationTemplate_parser_section = testIfParserSection "TranslationTemplate" parseTranslationTemplate printTranslationTemplate . normalizeTranslationTemplate
+prop_TranslationTemplate_parser_section = testIfParserSection "TranslationTemplate" parseTranslationTemplate printTranslationTemplate

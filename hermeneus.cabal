@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c337162e20fcbd736a2c605dd09eee0c7ec88c4c0e38f3d82ba747b4422b3c26
+-- hash: 9d289ee3dbcc35dcd9fdfdd5964c176aeee5dfa77b507d6d5a4ca5e079e45f7d
 
 name:           hermeneus
 version:        0.1.0.0
@@ -103,6 +103,7 @@ test-suite hermeneus-test
     , yaml >=0.8 && <1
   other-modules:
       DocTests
+      I18n.Hermeneus.AbaList
       I18n.Hermeneus.ArbitraryInstances
       I18n.Hermeneus.EngineSpec
       I18n.Hermeneus.MessageSpec

@@ -21,16 +21,19 @@ import qualified I18n.Hermeneus.NumberHandling as NH
 type FeatureId = NonEmptyString
 type FeatureValue = NonEmptyString
 
-{-
 nonEmptyStringToString :: NonEmptyString -> String
 nonEmptyStringFromString :: String -> NonEmptyString
+maybeNonEmptyStringFromString :: String -> Maybe NonEmptyString
 featureIdFromString :: String -> FeatureId
 featureValueFromString :: String -> FeatureValue
 
+{-
 type NonEmptyString = NonEmpty Char
 
 nonEmptyStringToString = NEL.toList
 nonEmptyStringFromString = NEL.fromList
+maybeNonEmptyStringFromString "" = Nothing
+maybeNonEmptyStringFromString x = Just $ NEL.fromList x
 featureIdFromString = NEL.fromList
 featureValueFromString = NEL.fromList
 -}
@@ -39,14 +42,16 @@ type NonEmptyString = String
 
 nonEmptyStringToString = id
 nonEmptyStringFromString = id
+maybeNonEmptyStringFromString "" = Nothing
+maybeNonEmptyStringFromString x = Just x
 featureIdFromString = id
 featureValueFromString = id
 
 type FeaturePair = (FeatureId, FeatureValue)
 
 type FeatureEnv = Map FeatureId FeatureValue
-data FeatureCondition = FeatureCondition [FeaturePair]
-  deriving (Eq, Ord, Show, Read)
+newtype FeatureCondition = FeatureCondition [FeaturePair]
+  deriving (Eq, Ord, Show, Read, Generic)
 
 newtype TranslationTemplate = TranslationTemplate [TranslationHank]
   deriving (Eq, Ord, Show, Read, Generic)
@@ -79,7 +84,7 @@ data FeatureReferenceExpr = ConcordWord WordReference
 --
 
 data LocalizedWord = LocalizedWord FeatureEnv [(FeatureCondition, String)]
-  deriving (Eq, Ord, Show, Read)
+  deriving (Eq, Ord, Show, Read, Generic)
 
 --
 -- Database
@@ -90,7 +95,7 @@ data TranslationSet = TranslationSet { langInfo :: LangInfo
                                      , translationSentences :: Map (String, Context) TranslationTemplate
                                      , translationWords :: Map (String, String, Context) LocalizedWord
                                      }
-  deriving (Eq, Ord, Show, Read)
+  deriving (Eq, Ord, Show, Read, Generic)
 
 type Locale = String
 
@@ -110,7 +115,7 @@ data MessageArg = ArgNumber Integer -- ToDo: Support decimals
 data NumberHandling = NumberHandling { numberDefaultFeature :: FeatureId -- ToDo: Isn't it FeatureValue?
                                      , numberExpressions :: [(NH.Expr, FeatureId)] -- ToDo: Isn't it FeatureValue?
                                      }
-  deriving (Eq, Ord, Show, Read)
+  deriving (Eq, Ord, Show, Read, Generic)
 
 numberHandlingEn, numberHandlingJa, numberHandlingGrc :: NumberHandling
 numberHandlingEn = NumberHandling pluralValue [(NH.EEq NH.ETarget $ NH.ENumber 1, singularValue)]
@@ -133,10 +138,10 @@ determineNumberWithCond x d ((c, f) : cs) | NH.evalCond x c = f
 -- Language feature data
 --
 
-data LangInfo = LangInfo { numberHandling :: NumberHandling
+newtype LangInfo = LangInfo { numberHandling :: NumberHandling
                          -- ToDo: Static check of features.
                          }
-  deriving (Eq, Ord, Show, Read)
+  deriving (Eq, Ord, Show, Read, Generic)
 
 --
 -- Translation words
