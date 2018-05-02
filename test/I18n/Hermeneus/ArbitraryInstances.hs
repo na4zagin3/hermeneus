@@ -4,6 +4,7 @@ import qualified Data.List.NonEmpty as NEL
 
 import Generic.Random
 import Data.Maybe
+import qualified Data.Map as M
 import Data.Text (Text)
 import Test.Tasty.QuickCheck
 import I18n.Hermeneus.Prim
@@ -28,7 +29,7 @@ instance (Arbitrary a) => Arbitrary (NEL.NonEmpty a) where
 
 instance Arbitrary WordReference where
   arbitrary = oneof [ PlaceholderNumber . getNonNegative <$> arbitrary
-                    , WordKey . getUnicodeString <$> arbitrary
+                    , WordRef . getUnicodeString <$> arbitrary
                     ]
   shrink = genericShrink
 
@@ -57,3 +58,46 @@ instance (Arbitrary TranslationTemplate) where
     return . TranslationTemplate $ catMaybes abas'
   shrink = genericShrink
 
+instance (Arbitrary NumberFeature) where
+  arbitrary = do
+    e <- NH.normalize <$> arbitrary
+    i <- genNonEmptyAlphaNumString
+    return $ NumberFeature e i
+  shrink = genericShrink
+
+instance (Arbitrary NumberHandling) where
+  arbitrary = NumberHandling <$> arbitrary <*> arbitrary
+  shrink = genericShrink
+
+instance (Arbitrary LangInfo) where
+  arbitrary = genericArbitrary uniform
+  shrink = genericShrink
+
+instance (Arbitrary FeatureCondition) where
+  arbitrary = do
+    n <- getSize
+    k <- choose (0,n)
+    fs <- vectorOf n genNonEmptyAlphaNumString
+    vs <- vectorOf n genNonEmptyAlphaNumString
+    return $ FeatureCondition $ zip fs vs
+  shrink = genericShrink
+
+instance (Arbitrary LocalizedWord) where
+  arbitrary = do
+    n <- getSize
+    k <- choose (0,n)
+    fs <- vectorOf n genNonEmptyAlphaNumString
+    vs <- vectorOf n genNonEmptyAlphaNumString
+    let env = M.fromList $ zip fs vs
+    LocalizedWord env <$> arbitrary
+  shrink = genericShrink
+
+instance (Arbitrary TranslationSet) where
+  arbitrary = do
+    n <- getSize
+    k <- choose (0,n)
+    fs <- arbitrary
+    m1 <- M.fromList <$> vectorOf n (scale (div 3) arbitrary)
+    m2 <- M.fromList <$> vectorOf n (scale (div 3) arbitrary)
+    return $ TranslationSet fs m1 m2
+  shrink = genericShrink

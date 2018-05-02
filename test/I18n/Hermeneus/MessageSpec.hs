@@ -41,19 +41,19 @@ spec_parseTranslationHank = describe "parseTranslationHank" $ do
   it "parses a placeholder with reference number with argument-agreement" $
     parse parseTranslationHank "" "{0:number#2}" `shouldBe` (Right $ Placeholder (PlaceholderNumber 0, [FeatureConstraintExpr numberFeature $ ConcordWord $ PlaceholderNumber 2]))
   it "parses a placeholder with empty reference word" $
-    parse parseTranslationHank "" "{**}" `shouldBe` (Right $ Placeholder (WordKey "", []))
+    parse parseTranslationHank "" "{**}" `shouldBe` (Right $ Placeholder (WordRef "", []))
   it "parses a placeholder with empty reference word and a colon" $
-    parse parseTranslationHank "" "{**:}" `shouldBe` (Right $ Placeholder (WordKey "", []))
+    parse parseTranslationHank "" "{**:}" `shouldBe` (Right $ Placeholder (WordRef "", []))
   it "parses a placeholder with reference word ':'" $
-    parse parseTranslationHank "" "{*:*}" `shouldBe` (Right $ Placeholder (WordKey ":", []))
+    parse parseTranslationHank "" "{*:*}" `shouldBe` (Right $ Placeholder (WordRef ":", []))
   it "parses a placeholder with reference word ':' with a colon" $
-    parse parseTranslationHank "" "{*:*:}" `shouldBe` (Right $ Placeholder (WordKey ":", []))
+    parse parseTranslationHank "" "{*:*:}" `shouldBe` (Right $ Placeholder (WordRef ":", []))
   it "does not parse '{***}'" $
     isLeft (parse parseTranslationHank "" "{***}") `shouldBe` True
   it "parses a placeholder with reference word '*'" $
-    parse parseTranslationHank "" "{****}" `shouldBe` (Right $ Placeholder (WordKey "*", []))
+    parse parseTranslationHank "" "{****}" `shouldBe` (Right $ Placeholder (WordRef "*", []))
   it "parses a placeholder with reference word with argument-agreement" $
-    parse parseTranslationHank "" "{*to*:number#2}" `shouldBe` (Right $ Placeholder (WordKey "to", [FeatureConstraintExpr numberFeature $ ConcordWord $ PlaceholderNumber 2]))
+    parse parseTranslationHank "" "{*to*:number#2}" `shouldBe` (Right $ Placeholder (WordRef "to", [FeatureConstraintExpr numberFeature $ ConcordWord $ PlaceholderNumber 2]))
   it "parses a placeholder with reference word with literal-agreement" $
     parse parseTranslationHank "" "{0:number=singular}" `shouldBe` (Right $ Placeholder (PlaceholderNumber 0, [FeatureConstraintExpr numberFeature $ Feature singularValue]))
   it "parses a placeholder with reference word with multiple literal-agreements" $
@@ -98,7 +98,7 @@ unit_printTranslationHank = do
   printTranslationHank (translatedString "a{c}") @?= "a{{c}}"
   printTranslationHank (Placeholder (PlaceholderNumber 1, [])) @?= "{1}"
   printTranslationHank (Placeholder (PlaceholderNumber 0, [FeatureConstraintExpr numberFeature $ ConcordWord $ PlaceholderNumber 2])) @?= "{0:number#2}"
-  printTranslationHank (Placeholder (WordKey "to", [FeatureConstraintExpr numberFeature $ ConcordWord $ PlaceholderNumber 2])) @?= "{*to*:number#2}"
+  printTranslationHank (Placeholder (WordRef "to", [FeatureConstraintExpr numberFeature $ ConcordWord $ PlaceholderNumber 2])) @?= "{*to*:number#2}"
   printTranslationHank (Placeholder (PlaceholderNumber 0, [FeatureConstraintExpr numberFeature $ Feature singularValue])) @?= "{0:number=singular}"
   printTranslationHank (Placeholder (PlaceholderNumber 0, [FeatureConstraintExpr numberFeature $ Feature singularValue, FeatureConstraintExpr genderFeature $ Feature feminineValue])) @?= "{0:number=singular,gender=feminine}"
 

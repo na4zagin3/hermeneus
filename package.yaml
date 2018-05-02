@@ -56,6 +56,7 @@ tests:
     dependencies:
     - hermeneus
     - doctest
+    - filepath
     - Glob
     - tasty
     - tasty-discover

@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9d289ee3dbcc35dcd9fdfdd5964c176aeee5dfa77b507d6d5a4ca5e079e45f7d
+-- hash: e9ac8c39f05d09c24d693f91adb5db350549049a2ed58c49e2ca2fbd4db05f4c
 
 name:           hermeneus
 version:        0.1.0.0
@@ -43,6 +43,7 @@ library
     , yaml >=0.8 && <1
   exposed-modules:
       I18n.Hermeneus
+      I18n.Hermeneus.Aeson
       I18n.Hermeneus.Database
       I18n.Hermeneus.Engine
       I18n.Hermeneus.Message
@@ -87,6 +88,7 @@ test-suite hermeneus-test
     , bytestring >=0.10 && <1
     , containers >=0.5 && <1
     , doctest
+    , filepath
     , generic-random
     , hermeneus
     , lens >=4.13 && <5
@@ -104,6 +106,7 @@ test-suite hermeneus-test
   other-modules:
       DocTests
       I18n.Hermeneus.AbaList
+      I18n.Hermeneus.AesonSpec
       I18n.Hermeneus.ArbitraryInstances
       I18n.Hermeneus.EngineSpec
       I18n.Hermeneus.MessageSpec

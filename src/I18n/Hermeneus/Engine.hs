@@ -44,7 +44,7 @@ wordFeatures (LocalizedWord fe fcss) = M.keysSet fe `S.union` S.unions (map (ext
 
 derefWordReference :: [a] -> StoredWordMap a -> WordReference -> Either String a
 derefWordReference argEnvs _              (PlaceholderNumber phid) = pure $ argEnvs !! fromInteger phid -- ToDo: Fix about corner cases
-derefWordReference _       storedWordEnvs (WordKey wk) = maybeToEither ("There are no word: " ++ wk) $ M.lookup wk storedWordEnvs
+derefWordReference _       storedWordEnvs (WordRef wk) = maybeToEither ("There are no word: " ++ wk) $ M.lookup wk storedWordEnvs
 
 resolveFeatureConstraintExpr :: [FeatureEnv] -> StoredWordMap FeatureEnv -> FeatureConstraintExpr -> Either String (Map FeatureId FeatureValue)
 resolveFeatureConstraintExpr argEnvs storedWordEnvs (FeatureConstraintExpr fid fre) = derefFeature fre

@@ -69,7 +69,7 @@ data TranslationHank = TranslatedString NonEmptyString
 type Placeholder = (WordReference, [FeatureConstraintExpr])
 
 data WordReference = PlaceholderNumber Integer
-                   | WordKey String
+                   | WordRef String
   deriving (Eq, Ord, Show, Read, Generic)
 
 data FeatureConstraintExpr = FeatureConstraintExpr FeatureId FeatureReferenceExpr
@@ -112,15 +112,20 @@ data MessageArg = ArgNumber Integer -- ToDo: Support decimals
                 | ArgWord String String Context
   deriving (Eq, Ord, Read, Show)
 
+data NumberFeature = NumberFeature { numberFExpr :: NH.Expr
+                                   , numberFId :: FeatureId -- ToDo: Isn't it FeatureValue?
+                                   }
+  deriving (Eq, Ord, Show, Read, Generic)
+
 data NumberHandling = NumberHandling { numberDefaultFeature :: FeatureId -- ToDo: Isn't it FeatureValue?
-                                     , numberExpressions :: [(NH.Expr, FeatureId)] -- ToDo: Isn't it FeatureValue?
+                                     , numberExpressions :: [NumberFeature]
                                      }
   deriving (Eq, Ord, Show, Read, Generic)
 
 numberHandlingEn, numberHandlingJa, numberHandlingGrc :: NumberHandling
-numberHandlingEn = NumberHandling pluralValue [(NH.EEq NH.ETarget $ NH.ENumber 1, singularValue)]
+numberHandlingEn = NumberHandling pluralValue [NumberFeature (NH.EEq NH.ETarget $ NH.ENumber 1) singularValue]
 numberHandlingJa = NumberHandling noneValue []
-numberHandlingGrc = NumberHandling pluralValue [(NH.EEq NH.ETarget $ NH.ENumber 1, singularValue), (NH.EEq NH.ETarget $ NH.ENumber 2, dualValue)]
+numberHandlingGrc = NumberHandling pluralValue [NumberFeature (NH.EEq NH.ETarget $ NH.ENumber 1) singularValue, NumberFeature (NH.EEq NH.ETarget $ NH.ENumber 2) dualValue]
 
 -- Todo locale specific number format
 translateNumber :: LangInfo -> Integer -> LocalizedWord
@@ -129,9 +134,9 @@ translateNumber li x = LocalizedWord (M.singleton numberFeature $ determineNumbe
 determineNumber :: Integer -> NumberHandling -> FeatureId
 determineNumber x (NumberHandling d cs) = determineNumberWithCond x d cs
 
-determineNumberWithCond :: Integer -> FeatureId -> [(NH.Expr, FeatureId)] -> FeatureId
+determineNumberWithCond :: Integer -> FeatureId -> [NumberFeature] -> FeatureId
 determineNumberWithCond _ d [] = d
-determineNumberWithCond x d ((c, f) : cs) | NH.evalCond x c = f
+determineNumberWithCond x d ((NumberFeature c f) : cs) | NH.evalCond x c = f
                                           | otherwise = determineNumberWithCond x d cs
 
 --

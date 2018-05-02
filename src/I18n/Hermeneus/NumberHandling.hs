@@ -68,8 +68,14 @@ meltUnaryMinus = everywhere (mkT replace)
       replace (ENeg (ENumber x)) | x > 0 = ENumber $ - x
       replace e = e
 
+expandUnaryMinus :: Expr -> Expr
+expandUnaryMinus = everywhere (mkT replace)
+      where
+      replace (ENumber x) | x < 0 = ENeg (ENumber (-x))
+      replace e = e
+
 normalize :: Expr -> Expr
-normalize = meltUnaryMinus
+normalize = expandUnaryMinus
 
 boolToInt :: Bool -> Integer
 boolToInt True = 1

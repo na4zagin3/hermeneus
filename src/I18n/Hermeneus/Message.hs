@@ -48,7 +48,7 @@ parseWordReference = parseWord <|> parseNumber
     parseNumber = PlaceholderNumber . read <$> many1 digit
     parseWord = do
       string "*"
-      (fmap WordKey . many $ (try escapedStar <|> noneOf "*")) <* string "*"
+      (fmap WordRef . many $ (try escapedStar <|> noneOf "*")) <* string "*"
     escapedStar :: Stream s m Char => ParsecT s u m Char
     escapedStar = string "**" $> '*'
 
@@ -100,7 +100,7 @@ printPlaceholder (wr, fces) = mconcat [ "{"
 
 printWordReference ::  (IsString s, Semigroup s, Monoid s) => WordReference -> s
 printWordReference (PlaceholderNumber n) = fromString $ show n
-printWordReference (WordKey w) = "*" <> fromString (concatMap escapeStar w) <> "*"
+printWordReference (WordRef w) = "*" <> fromString (concatMap escapeStar w) <> "*"
   where
     escapeStar '*' = "**"
     escapeStar x = [x]
