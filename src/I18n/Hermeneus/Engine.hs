@@ -50,10 +50,8 @@ resolveFeatureConstraintExpr argEnvs storedWordEnvs (FeatureConstraintExpr fid f
   where
     derefFeature (ConcordWord wref) = do
       features <- derefWordReference argEnvs storedWordEnvs wref
-      let v = M.lookup fid features
-      return $ case v of
-        Nothing -> M.empty
-        Just x -> M.singleton fid x
+      let errorMsg = "The word referenced by " ++ show wref ++ " does not have feature " ++ fid ++ "."
+      maybeToEither errorMsg . fmap (M.singleton fid) $ M.lookup fid features
     derefFeature (Feature feature) = pure $ M.singleton fid feature
 
 resolveFeatureConstraintExprs :: [FeatureEnv] -> StoredWordMap FeatureEnv -> FeatureEnv -> [FeatureConstraintExpr] -> Either String (Map FeatureId FeatureValue)

@@ -9,7 +9,7 @@ properties:
 sentences: # sentence と context がキー
   - sentence: "Bought {0} {1:number#0}."
     context: "com.example.shopping.buy"
-    translation: "{0}{*助数詞.*:number#1}の{1}を買った。"
+    translation: "{0}{*助数詞.*:counter#1}の{1}を買った。"
 
 words: # word と context がキー
   - word: "car"

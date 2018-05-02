@@ -1,5 +1,6 @@
 module I18n.Hermeneus.EngineSpec where
 
+import Data.Either
 import qualified Data.Map as M
 import I18n.Hermeneus.Prim
 
@@ -28,10 +29,14 @@ unit_matchFeatureConstraint = do
   matchFeatureConstraint (featureCondition [(n, s)]) (M.fromList [(n, s)]) @?= True
   matchFeatureConstraint (featureCondition [(n, s)]) (M.fromList [(n, d)]) @?= False
 
--- unit_resolveFeatures :: IO ()
--- unit_resolveFeatures = do
---   resolveFeatureConstraintExpr (WordKey "a") (M.fromList [("a", M.fromList [("b", "c")])]) @?= [("b", "c")]
---   resolveFeatureConstraintExpr (WordKey "a") $ (M.fromList [("a", M.fromList [("b", "c"), ("d", "e")])]) @?= [("b", "c")]
+unit_resolveFeatures :: IO ()
+unit_resolveFeatures = do
+  resolveFeatureConstraintExpr [] (M.fromList []) (FeatureConstraintExpr n (Feature s)) @?= Right (M.fromList [(n, s)])
+  resolveFeatureConstraintExpr [M.fromList [(n, s)]] (M.fromList []) (FeatureConstraintExpr n (ConcordWord (PlaceholderNumber 0))) @?= Right (M.fromList [(n, s)])
+  resolveFeatureConstraintExpr [] (M.fromList [("w", M.fromList [(n, s)])]) (FeatureConstraintExpr n (ConcordWord (WordRef "w"))) @?= Right (M.fromList [(n, s)])
+
+  isLeft (resolveFeatureConstraintExpr [M.fromList []] (M.fromList []) (FeatureConstraintExpr n (ConcordWord (PlaceholderNumber 0)))) @?= True
+  isLeft (resolveFeatureConstraintExpr [] (M.fromList [("w", M.fromList [])]) (FeatureConstraintExpr n (ConcordWord (WordRef "w")))) @?= True
 
 
 unit_translatePlaceholders :: IO ()

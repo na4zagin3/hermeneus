@@ -37,6 +37,6 @@ unit_translations = do
   msgBought "en" 2 "car" "cars" @?= Right "Bought 2 cars." -- ToDo: Fix this
   msgBought "en" 2 "book" "books" @?= Right "Bought 2 books."
   -- ToDo: Fix those cases
-  -- msgBought "ja" 1 "car" "cars" @?= Right "1台の車を買った。"
-  -- msgBought "ja" 1 "car" "cars" @?= Right "1台の車を買った。"
+  msgBought "ja" 1 "car" "cars" @?= Right "1台の車を買った。"
+  msgBought "ja" 1 "car" "cars" @?= Right "1台の車を買った。"
   msgBought "ja" 1 "book" "books" @?= Right "1冊の本を買った。"
