@@ -1,0 +1,42 @@
+properties:
+  number:
+    default: single
+    values: # 数に関する条件の定義は https://www.gnu.org/software/gettext/manual/gettext.html#Translating-plural-forms を見ること
+      - value: single
+        condition: "n==1"
+      - value: plural
+        condition: "n!=1"
+
+sentences: # 
+  - sentence: "Bought {0} {1:number#0}."
+    context: "com.example.shopping.buy"
+    translation: "Bought {0} {1:number#0}."
+# ToDo: Embedded word definition
+#  - sentence: "Bought {0:0~no,1~a} {1:number#0}."
+#    context: "com.example.shopping.buy"
+#    translation: "Bought {0:0~no,1~a} {1:number#0}."
+
+words:
+  - word: "car"
+    wordplural: "cars"
+    context: "com.example.shopping.buy"
+    controller: {}
+    translations:
+      - condition:
+          number: single
+        translation: "car"
+      - condition:
+          number: plural
+        translation: "cars"
+  - word: "book"
+    wordplural: "books"
+    context: "com.example.shopping.buy"
+    controller: {}
+    translations:
+      - condition:
+          number: single
+        translation: "book"
+      - condition:
+          number: plural
+        translation: "books"
+

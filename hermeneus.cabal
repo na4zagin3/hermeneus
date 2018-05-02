@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e9ac8c39f05d09c24d693f91adb5db350549049a2ed58c49e2ca2fbd4db05f4c
+-- hash: a74fb01c1f7b27f4703627cd4322db8800fec6b57c2fb8c2ce3a9d4bf24e9aef
 
 name:           hermeneus
 version:        0.1.0.0
@@ -111,5 +111,6 @@ test-suite hermeneus-test
       I18n.Hermeneus.EngineSpec
       I18n.Hermeneus.MessageSpec
       I18n.Hermeneus.NumberHandlingSpec
+      Shopping
       Paths_hermeneus
   default-language: Haskell2010

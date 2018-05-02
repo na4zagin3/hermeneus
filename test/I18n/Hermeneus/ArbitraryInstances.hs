@@ -79,7 +79,7 @@ instance (Arbitrary FeatureCondition) where
     k <- choose (0,n)
     fs <- vectorOf n genNonEmptyAlphaNumString
     vs <- vectorOf n genNonEmptyAlphaNumString
-    return $ FeatureCondition $ zip fs vs
+    return . FeatureCondition . M.fromList $ zip fs vs
   shrink = genericShrink
 
 instance (Arbitrary LocalizedWord) where
@@ -89,7 +89,15 @@ instance (Arbitrary LocalizedWord) where
     fs <- vectorOf n genNonEmptyAlphaNumString
     vs <- vectorOf n genNonEmptyAlphaNumString
     let env = M.fromList $ zip fs vs
-    LocalizedWord env <$> arbitrary
+    LocalizedWord env <$> scale (`div` 2) arbitrary
+  shrink = genericShrink
+
+instance (Arbitrary SentenceKey) where
+  arbitrary = genericArbitrary' uniform
+  shrink = genericShrink
+
+instance (Arbitrary WordKey) where
+  arbitrary = genericArbitrary' uniform
   shrink = genericShrink
 
 instance (Arbitrary TranslationSet) where
@@ -97,7 +105,7 @@ instance (Arbitrary TranslationSet) where
     n <- getSize
     k <- choose (0,n)
     fs <- arbitrary
-    m1 <- M.fromList <$> vectorOf n (scale (div 3) arbitrary)
-    m2 <- M.fromList <$> vectorOf n (scale (div 3) arbitrary)
+    m1 <- M.fromList <$> vectorOf n (scale (`div` 3) arbitrary)
+    m2 <- M.fromList <$> vectorOf n (scale (`div` 3) arbitrary)
     return $ TranslationSet fs m1 m2
   shrink = genericShrink

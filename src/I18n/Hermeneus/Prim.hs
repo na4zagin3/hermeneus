@@ -50,7 +50,7 @@ featureValueFromString = id
 type FeaturePair = (FeatureId, FeatureValue)
 
 type FeatureEnv = Map FeatureId FeatureValue
-newtype FeatureCondition = FeatureCondition [FeaturePair]
+newtype FeatureCondition = FeatureCondition (Map FeatureId FeatureValue)
   deriving (Eq, Ord, Show, Read, Generic)
 
 newtype TranslationTemplate = TranslationTemplate [TranslationHank]
@@ -90,10 +90,21 @@ data LocalizedWord = LocalizedWord FeatureEnv [(FeatureCondition, String)]
 -- Database
 --
 
+data SentenceKey = SentenceKey { sentenceId :: String
+                               , sentenceContext :: Context
+                               }
+  deriving (Eq, Ord, Show, Read, Generic)
+
+data WordKey = WordKey { wordId :: String
+                       , wordIdPlural :: String -- ToDo: Is it required?
+                       , wordContext :: Context
+                       }
+  deriving (Eq, Ord, Show, Read, Generic)
+
 type Context = String
 data TranslationSet = TranslationSet { langInfo :: LangInfo
-                                     , translationSentences :: Map (String, Context) TranslationTemplate
-                                     , translationWords :: Map (String, String, Context) LocalizedWord
+                                     , translationSentences :: Map SentenceKey TranslationTemplate
+                                     , translationWords :: Map WordKey LocalizedWord
                                      }
   deriving (Eq, Ord, Show, Read, Generic)
 
@@ -129,7 +140,7 @@ numberHandlingGrc = NumberHandling pluralValue [NumberFeature (NH.EEq NH.ETarget
 
 -- Todo locale specific number format
 translateNumber :: LangInfo -> Integer -> LocalizedWord
-translateNumber li x = LocalizedWord (M.singleton numberFeature $ determineNumber x $ numberHandling li) [(FeatureCondition [], show x)]
+translateNumber li x = LocalizedWord (M.singleton numberFeature $ determineNumber x $ numberHandling li) [(FeatureCondition mempty, show x)]
 
 determineNumber :: Integer -> NumberHandling -> FeatureId
 determineNumber x (NumberHandling d cs) = determineNumberWithCond x d cs
@@ -153,7 +164,7 @@ newtype LangInfo = LangInfo { numberHandling :: NumberHandling
 --
 
 nonTranslatedString :: String -> LocalizedWord
-nonTranslatedString x = LocalizedWord M.empty [(FeatureCondition [], x)]
+nonTranslatedString x = LocalizedWord M.empty [(FeatureCondition mempty, x)]
 
 genderFeature, numberFeature :: FeatureId
 genderFeature = featureIdFromString "gender"

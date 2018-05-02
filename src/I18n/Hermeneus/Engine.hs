@@ -2,6 +2,7 @@ module I18n.Hermeneus.Engine where
 
 import Control.Applicative
 import Data.Maybe
+import Data.Semigroup ((<>))
 import Data.Set (Set)
 import qualified Data.Set as S
 import Data.Map (Map)
@@ -29,14 +30,12 @@ selectDefaultWord [] = error "selectDefaultWord"
 selectDefaultWord ((_, w) : _) = w
 
 matchFeatureConstraint :: FeatureCondition -> FeatureEnv -> Bool
-matchFeatureConstraint (FeatureCondition kvs) env = kvsMap `M.isSubmapOf` env
-  where
-    kvsMap = M.fromList kvs
+matchFeatureConstraint (FeatureCondition kvs) env = kvs `M.isSubmapOf` env
 
 wordFeatures :: LocalizedWord -> Set FeatureId
 wordFeatures (LocalizedWord fe fcss) = M.keysSet fe `S.union` S.unions (map (extractFeatures . fst) fcss)
   where
-    extractFeatures (FeatureCondition fcs) = S.fromList $ map fst fcs
+    extractFeatures (FeatureCondition fcs) = M.keysSet fcs
 
 
 -- |
@@ -109,22 +108,23 @@ mapLeft :: (a -> c) -> Either a b -> Either c b
 mapLeft f (Left x) = Left $ f x
 mapLeft _ (Right x) = Right x
 
-filterWord :: MessageArg -> Maybe (String, String, Context)
-filterWord (ArgWord s p c) = Just (s, p, c)
+filterWord :: MessageArg -> Maybe WordKey
+filterWord (ArgWord s p c) = Just (WordKey s p c)
 filterWord               _ = Nothing
 
 -- hasTranslation :: Database -> String -> (String, Context) -> [(String, Context)] -> Bool
 translateMessage :: Database -> Locale -> MessageKey -> [MessageArg] -> Either String String
 translateMessage db l (MessageKey s c) as = do
   let ws = mapMaybe filterWord as
-  let isTranslatable = hasTranslation db l (s, c) ws
+  -- ToDo: Implement locale fallback
+  let isTranslatable = hasTranslation db l (SentenceKey s c) ws
   let locale = if isTranslatable then l else "en"
-  ts <- maybeToEither "A" $ M.lookup locale db
+  ts <- maybeToEither ("Message resource does not contain locale " <> locale) $ M.lookup locale db
   let localizedWords = map (localizeArgument ts) as
   let defaultTemplate = mapLeft show $ parse parseTranslationTemplate "translateTemplate" s :: Either String TranslationTemplate
-  let localizedTemplate = maybeToEither "B" $ getLocalizedTemplate ts (s, c) :: Either String TranslationTemplate
+  let localizedTemplate = maybeToEither "B" $ getLocalizedTemplate ts (SentenceKey s c) :: Either String TranslationTemplate
   localizedTemplate <- localizedTemplate <|> defaultTemplate
-  let storedWord = M.fromList . map (\((s, p, c), x) -> (s ++ "." ++ p, x)) $ M.toList $ translationWords ts
+  let storedWord = M.fromList . map (\(WordKey s p c, x) -> (s ++ "." ++ p, x)) $ M.toList $ translationWords ts -- ToDo: Inefficient and it's wrong to converting the keys to "<msgid>.<msgid_plural>"
   concat <$> translateTemplates localizedTemplate storedWord localizedWords
 
 

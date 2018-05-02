@@ -22,7 +22,7 @@ import Data.Aeson.TH
 import I18n.Hermeneus.Prim
 
 
-hasTranslation :: Database -> String -> (String, Context) -> [(String, String, Context)] -> Bool
+hasTranslation :: Database -> String -> SentenceKey -> [WordKey] -> Bool
 hasTranslation db loc s ws = fromMaybe False $ do
   ts <- loc `M.lookup` db
   _ <- s `M.lookup` translationSentences ts
@@ -39,20 +39,20 @@ getEnglishWordTranslation :: String -> String -> LocalizedWord
 getEnglishWordTranslation singular plural = LocalizedWord featureEnv forms
   where
     featureEnv = M.empty
-    forms = [ (FeatureCondition [(numberFeature, singularValue)], singular)
-            , (FeatureCondition [(numberFeature, pluralValue)], plural)
+    forms = [ (FeatureCondition $ M.fromList [(numberFeature, singularValue)], singular)
+            , (FeatureCondition $ M.fromList [(numberFeature, pluralValue)], plural)
             ]
 
-getLocalizedWord :: TranslationSet -> (String, String, Context) -> Maybe LocalizedWord
+getLocalizedWord :: TranslationSet -> WordKey -> Maybe LocalizedWord
 getLocalizedWord ts k = M.lookup k $ translationWords ts
 
-getLocalizedTemplate :: TranslationSet -> (String, Context) -> Maybe TranslationTemplate
+getLocalizedTemplate :: TranslationSet -> SentenceKey -> Maybe TranslationTemplate
 getLocalizedTemplate ts k = M.lookup k $ translationSentences ts
 
 -- todo: move?
 localizeArgument :: TranslationSet -> MessageArg -> LocalizedWord
 localizeArgument ts (ArgNumber x) = translateNumber (langInfo ts) x
 localizeArgument _ (ArgString x) = nonTranslatedString x
-localizeArgument ts (ArgWord s p c) = fromMaybe engWord $ getLocalizedWord ts (s, p, c) 
+localizeArgument ts (ArgWord s p c) = fromMaybe engWord $ getLocalizedWord ts (WordKey s p c)
   where
     engWord = getEnglishWordTranslation s p

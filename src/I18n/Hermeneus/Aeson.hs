@@ -1,8 +1,13 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE DeriveGeneric, OverloadedStrings #-}
 
 module I18n.Hermeneus.Aeson where
 
 import Data.Aeson as JSON
+import qualified Data.Char as C
+import qualified Data.Map as M
+import Data.Maybe
+import GHC.Generics
 import Text.Parsec
 
 import qualified I18n.Hermeneus.Message as M
@@ -52,13 +57,74 @@ instance ToJSON LangInfo where
   toJSON li = object [ "number" .= numberHandling li
                      ]
 
+data SentenceEntry = SentenceEntry
+  { sentenceSentence :: String
+  , sentenceContext :: String
+  , sentenceTranslation :: TranslationTemplate
+  } deriving (Read, Show, Generic)
+
+instance FromJSON SentenceEntry where
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = map C.toLower . drop 8
+                                              }
+instance ToJSON SentenceEntry where
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = map C.toLower . drop 8
+                                        }
+
+sentenceEntryToKey :: SentenceEntry -> (SentenceKey, TranslationTemplate)
+sentenceEntryToKey (SentenceEntry s c t) = (SentenceKey s c, t)
+sentenceKeyToEntry :: (SentenceKey, TranslationTemplate) ->  SentenceEntry
+sentenceKeyToEntry (SentenceKey s c, t) = SentenceEntry s c t
+
+data WordTranslationEntry = WordTranslationEntry
+  { wordTranslationCondition :: FeatureCondition
+  , wordTranslationTranslation :: String
+  } deriving (Read, Show, Generic)
+
+instance FromJSON WordTranslationEntry where
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = map C.toLower . drop 15
+                                              }
+instance ToJSON WordTranslationEntry where
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = map C.toLower . drop 15
+
+                                        }
+wordTranslationEntryToKey :: WordTranslationEntry -> (FeatureCondition, String)
+wordTranslationEntryToKey (WordTranslationEntry o t) = (o, t)
+
+wordTranslationKeyToEntry :: (FeatureCondition, String) -> WordTranslationEntry
+wordTranslationKeyToEntry (o, t) = WordTranslationEntry o t
+
+data WordEntry = WordEntry
+  { wordWord :: String
+  , wordWordPlural :: Maybe String
+  , wordContext :: String
+  , wordController :: FeatureEnv
+  , wordTranslations :: [WordTranslationEntry]
+  } deriving (Read, Show, Generic)
+
+instance FromJSON WordEntry where
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = map C.toLower . drop 4
+                                              }
+instance ToJSON WordEntry where
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = map C.toLower . drop 4
+
+                                        }
+wordEntryToKey :: WordEntry -> (WordKey, LocalizedWord)
+wordEntryToKey (WordEntry w p c o t) = (WordKey w (fromMaybe "" p) c, LocalizedWord o $ map wordTranslationEntryToKey t) -- ToDo: Fix this
+
+wordKeyToEntry :: (WordKey, LocalizedWord) -> WordEntry
+wordKeyToEntry (WordKey w p c, LocalizedWord o t) = (WordEntry w (f p) c o $ map wordTranslationKeyToEntry t)
+  where
+    f "" = Nothing
+    f x = Just x
+
 instance FromJSON TranslationSet where
-  parseJSON = withObject "TranslationSet" $ \v -> TranslationSet
-      <$> v .: "properties"
-      <*> v .: "sentences"
-      <*> v .: "words"
+  parseJSON = withObject "TranslationSet" $ \v -> do
+      p <- v .: "properties"
+      ss <- M.fromList . map sentenceEntryToKey <$> v .: "sentences"
+      ws <- M.fromList . map wordEntryToKey <$> v .: "words"
+      return $ TranslationSet p ss ws
 instance ToJSON TranslationSet where
   toJSON ts = object [ "properties" .= langInfo ts
-                     , "sentences" .= translationSentences ts
-                     , "words" .= translationWords ts
+                     , "sentences" .= (map sentenceKeyToEntry . M.toList $ translationSentences ts)
+                     , "words" .= (map wordKeyToEntry . M.toList $ translationWords ts)
                      ]
