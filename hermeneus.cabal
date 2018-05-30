@@ -1,8 +1,8 @@
--- This file has been generated from package.yaml by hpack version 0.20.0.
+-- This file has been generated from package.yaml by hpack version 0.28.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a74fb01c1f7b27f4703627cd4322db8800fec6b57c2fb8c2ce3a9d4bf24e9aef
+-- hash: 20fcafa0789165bd47900a6691f4f3c8b7f5ab2828dc5e737242316361e24bd8
 
 name:           hermeneus
 version:        0.1.0.0
@@ -18,7 +18,6 @@ license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
 cabal-version:  >= 1.10
-
 extra-source-files:
     ChangeLog.md
     README.md
