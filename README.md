@@ -172,8 +172,8 @@ words:
 ### 複数の素性についての一致
 
 ```haskell
-wordRome   = ArgWord "Rome"   "Rome"   "com.example.diary.trip"
-wordAthens = ArgWord "Athens" "Athens" "com.example.diary.trip"
+wordRome   = ArgWord "Rome"   "" "com.example.diary.trip"
+wordAthens = ArgWord "Athens" "" "com.example.diary.trip"
 sentenceTrip = MessageKey "Went to {0} from {1}." "com.example.diary.trip"
 
 unit_translations :: IO ()

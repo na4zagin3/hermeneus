@@ -33,7 +33,6 @@ sentences:
 
 words:
   - word: "Rome"
-    wordplural: "Rome"
     context: "com.example.diary.trip"
     controller:
       gender: feminine
@@ -46,7 +45,6 @@ words:
           case: genitive
         translation: "Ῥώμης"
   - word: "Athens"
-    wordplural: "Athens"
     context: "com.example.diary.trip"
     controller:
       gender: feminine

@@ -14,14 +14,12 @@ sentences: #
 
 words:
   - word: "Rome"
-    wordplural: "Rome"
     context: "com.example.diary.trip"
     controller: {}
     translations:
       - condition: {}
         translation: "Rome"
   - word: "Athens"
-    wordplural: "Athens"
     context: "com.example.diary.trip"
     controller: {}
     translations:
