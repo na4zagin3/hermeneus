@@ -171,6 +171,23 @@ words:
 
 ### 複数の素性についての一致
 
+```haskell
+wordRome   = ArgWord "Rome"   "Rome"   "com.example.diary.trip"
+wordAthens = ArgWord "Athens" "Athens" "com.example.diary.trip"
+sentenceTrip = MessageKey "Went to {0} from {1}." "com.example.diary.trip"
+
+unit_translations :: IO ()
+unit_translations = do
+  db <- translationResource
+  translateMessage db "en"  sentenceTrip [wordRome, wordAthens] @?= Right "Went to Rome from Athens."
+  translateMessage db "en"  sentenceTrip [wordAthens, wordRome] @?= Right "Went to Athens from Rome."
+  translateMessage db "ja"  sentenceTrip [wordRome, wordAthens] @?= Right "アテネからローマへ行った。"
+  translateMessage db "ja"  sentenceTrip [wordAthens, wordRome] @?= Right "ローマからアテネへ行った。"
+  translateMessage db "grc" sentenceTrip [wordRome, wordAthens] @?= Right "εἰς Ῥώμην ἦλθον ἐξ Ἀθήνων."
+  translateMessage db "grc" sentenceTrip [wordAthens, wordRome] @?= Right "εἰς Ἀθήνας ἦλθον ἐξ Ῥώμης."
+```
+
+Java版はこのようになる予定
 ```java
 // com.example.diary.trip
 LocalizedWord rome = i18n.trw("Rome");
