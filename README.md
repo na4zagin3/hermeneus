@@ -1,28 +1,31 @@
 # Hermeneus
-A new translation framework that handles agreement.
+A new message-internationalization framework that handles agreement.
 
 See: <https://en.wikipedia.org/wiki/Agreement_(linguistics)>
 
 ## Project Structure
-It consists three parts:
+This is (yet) a proof-of-concept implementation of the rendering engine of the new message i18n framework.
+
+It will consists three parts:
 - Extractor
 - Editor
 - Renderer
 
-- Handle agreement
+Stay tuned!
 
-## Use cases in Java
-Message translations are described with `i18n.trs`.
-メッセージの翻訳は`i18n.rts`により行われる。
-このメソッドは第一引数に翻訳キーを、引き続きプレースホルダーに埋められるべきものを引数として取る。
-- `Integer`型や`Double`型などの数値はロカール依存の数値フォーマットによってフォーマットされる。 
-  - 数の素性を持つ。
-- `LocalizedWord`は翻訳文生成の際に素性の一致が考慮される。
-  - `i18n.trw`() メソッドによって`LocalizedWord`を生成する。
-  - `i18n.trw(singular, plural)` メソッドによって、デフォルト言語である英語において、数が単数であるときの語形と複数であるときの語形を指定した訳語を生成することができる。
-- その他のオブジェクトは`String`型にキャストされそのまま埋め込まれる。
-  - 素性を持たない。
+## Brief Introduction of the framework
+A detailed paper may come.
 
+Unlike [Gettext][gettext], message translation process in Hermeneus has two phases: _word translation_ and _sentence translation_. It also has _features_ (e.g., gender, starts with a consonant or a vowel [for distinction used by English _a-/an-_ and Hungarian _a-/az-_], and so on) other than numbers.
+
+[gettext]: https://www.gnu.org/software/gettext/
+
+A translated word can have _controllers_ and a _paradigm_ where a paradigm is a mapping from features to represent forms of words. For example translated word `*apple*` (hereinafter a translated is represented in monospaced font with surrounded `*`) in English controls `start-with-vowel` feature and has two representation forms: `singular`-number form “apple” and `plural`-number form “apples”.  And number `*10*` controls `plural`-number feature and has only representation form “10”.
+
+Sentence translation is a process of constructing a translation result with appropriate representation forms of translation words.
+In English, `*10* *apple*` will be translated into “10 apples” since `*10*` controls `plural`-number form of `*apple*`, which is “apples”.
+
+This method properly works with other cases like _a-/an-_ distinction. Translated word `*a*` has two representation forms: “a” used before a word with `start-with-consonant` feature and “an” before a word with `start-with-vowel` feature.
 
 ##翻訳キーについて
 
