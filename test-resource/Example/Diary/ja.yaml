@@ -1,0 +1,28 @@
+properties:
+  number:
+    default: none
+    values: []
+  features:
+    - name: "counter"
+      values: dai, satsu, kire
+
+sentences: #
+  - sentence: "Went to {0} from {1}."
+    context: "com.example.diary.trip"
+    translation: "{1}から{0}へ行った。"
+
+words:
+  - word: "Athens"
+    wordplural: "Athens"
+    context: "com.example.diary.trip"
+    controller: {}
+    translations:
+      - condition: {}
+        translation: "アテネ"
+  - word: "Rome"
+    wordplural: "Rome"
+    context: "com.example.diary.trip"
+    controller: {}
+    translations:
+      - condition: {}
+        translation: "ローマ"

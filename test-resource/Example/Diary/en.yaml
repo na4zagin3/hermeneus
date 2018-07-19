@@ -1,0 +1,30 @@
+properties:
+  number:
+    default: single
+    values: # 数に関する条件の定義は https://www.gnu.org/software/gettext/manual/gettext.html#Translating-plural-forms を見ること
+      - value: single
+        condition: "n==1"
+      - value: plural
+        condition: "n!=1"
+
+sentences: # 
+  - sentence: "Went to {0} from {1}."
+    context: "com.example.diary.trip"
+    translation: "Went to {0} from {1}."
+
+words:
+  - word: "Rome"
+    wordplural: "Rome"
+    context: "com.example.diary.trip"
+    controller: {}
+    translations:
+      - condition: {}
+        translation: "Rome"
+  - word: "Athens"
+    wordplural: "Athens"
+    context: "com.example.diary.trip"
+    controller: {}
+    translations:
+      - condition: {}
+        translation: "Athens"
+

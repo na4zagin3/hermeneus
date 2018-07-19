@@ -1,0 +1,60 @@
+properties:
+  number:
+    default: single
+    values:
+      - value: single
+        condition: "n=1"
+      - value: plural
+        condition: "n=2"
+      - value: dual
+        condition: "n!=1&&n!=2"
+  features: # ギリシャ語には素性が多い
+    - name: gender # 数以外の素性には、その素性を持つための条件は存在しない。各語に対して指定される。
+      values:
+        - value: masculine
+        - value: neuter
+        - value: feminine
+    - name: case
+      values:
+        - value: nominative
+        - value: vocative
+        - value: accusative
+        - value: genetive
+        - value: dative
+    - name: position
+      values:
+        - value: final
+        - value: nonfinal
+
+sentences:
+  - sentence: "Went to {0} from {1}."
+    context: "com.example.diary.trip"
+    translation: "εἰς {0:case=accusative,position=nonfinal} ἦλθον ἐξ {1:case=genitive,position=final}."
+
+words:
+  - word: "Rome"
+    wordplural: "Rome"
+    context: "com.example.diary.trip"
+    controller:
+      gender: feminine
+      number: single
+    translations:
+      - condition:
+          case: accusative
+        translation: "Ῥώμην"
+      - condition:
+          case: genitive
+        translation: "Ῥώμης"
+  - word: "Athens"
+    wordplural: "Athens"
+    context: "com.example.diary.trip"
+    controller:
+      gender: feminine
+      number: plural
+    translations:
+      - condition:
+          case: accusative
+        translation: "Ἀθήνας"
+      - condition:
+          case: genitive
+        translation: "Ἀθήνων"

@@ -41,6 +41,25 @@ feature-expression = '#' word-reference
 ### Shopping
 
 #### ソースコード
+##### Haskell版
+```haskell
+wordCar  = ArgWord "car"  "cars" "com.example.shopping.buy"
+wordBook = ArgWord "book" "books" "com.example.shopping.buy"
+sentenceBought = MessageKey "Bought {0} {1:number#0}." "com.example.shopping.buy"
+
+unit_translations :: IO ()
+unit_translations = do
+  db <- translationResource
+  let msgBought l n w = translateMessage db l sentenceBought [ArgNumber n, w]
+  msgBought "en" 1 wordCar @?= Right "Bought 1 car."
+  msgBought "en" 2 wordCar @?= Right "Bought 2 cars." -- ToDo: Fix this
+  msgBought "en" 2 wordBook @?= Right "Bought 2 books."
+  msgBought "ja" 1 wordCar @?= Right "1台の車を買った。"
+  msgBought "ja" 2 wordCar @?= Right "2台の車を買った。"
+  msgBought "ja" 1 wordBook @?= Right "1冊の本を買った。"
+```
+
+##### Java版（予定）
 ```java
 // com.example.diary.shopping
 String buy(int number, itemId) {
@@ -53,7 +72,7 @@ String buy(int number, itemId) {
 }
 ```
 
-#### 出力例
+出力例
 ```
 buy(0, 0) =>
   en-US: "Bought 0 cars."
@@ -154,37 +173,38 @@ words:
 
 ```java
 // com.example.diary.trip
-List<String> countries = [ i18n.trw("Roma")
-                         , i18n.trw("Athens")
-                         ]
-String msg1 = i18n.trs("Went to {0:city} from {1:city}.", list[0], list[1], means[0]).
-String msg1 = i18n.trs("Went to {0:city} from {1:city}.", list[1], list[0], means[1]).
+LocalizedWord rome = i18n.trw("Rome");
+LocalizedWord athens = i18n.trw("Athens");
+
+String msg1 = i18n.trs("Went to {0} from {1}.", rome, athens).
+String msg2 = i18n.trs("Went to {0} from {1}.", athens, rome).
 ```
 
 ```
 msg1 =>
-  en-US: "Went to Roma from Athens ."
+  en-US: "Went to Rome from Athens."
   ja-JP: "アテネからローマヘ行った。"
-  grc-Latn: "εἰς ῾Ρώμην ἦλθον ἐξ Ἀθήνων."
+  grc-Latn: "εἰς Ῥώμην ἦλθον ἐξ Ἀθήνων."
 msg2 =>
   en-US: "Went to Athens from Roma ."
   ja-JP: "ローマからアテネヘ行った。"
-  grc-Latn: "εἰς Ἀθήνας ἦλθον ἐξ ῾Ρώμης." or "Ἀθήναζε ἦλθον ἐξ ῾Ρώμης." 
+  grc-Latn: "εἰς Ἀθήνας ἦλθον ἐξ Ῥώμης." or "Ἀθήναζε ἦλθον ἐξ Ῥώμης."
 ```
 
 #### grcの翻訳データベース
 
 ```yaml
 properties:
+  number:
+    default: single
+    values:
+      - value: single
+        condition: "n=1"
+      - value: plural
+        condition: "n=2"
+      - value: dual
+        condition: "n!=1&&n!=2"
   features: # ギリシャ語には素性が多い
-    - name: number
-      values:
-        - value: single
-          condition "n=1"
-        - value: plural
-          condition "n=2"
-        - value: dual
-          condition "n!=1&&n!=2"
     - name: gender # 数以外の素性には、その素性を持つための条件は存在しない。各語に対して指定される。
       values:
         - value: masculine
@@ -204,24 +224,24 @@ properties:
 
 sentences:
   - sentence: "Went to {0} from {1}."
-    context: "com.example.trip"
+    context: "com.example.diary.trip"
     translation: "εἰς {0:case=accusative,position=nonfinal} ἦλθον ἐξ {1:case=genitive,position=final}."
 
 words:
   - word: "Roma"
-    context: "com.example.trip"
+    context: "com.example.diary.trip"
     controller:
       gender: feminine
       number: single
     translation:
       - condition:
           case: accusative
-        translation: "῾Ρώμην"
+        translation: "Ῥώμην"
       - condition:
           case: genitive
-        translation: "῾Ρώμης"
+        translation: "Ῥώμης"
   - word: "Athens"
-    context: "com.example.trip"
+    context: "com.example.diary.trip"
     controller:
       gender: feminine
       number: plural

@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 20fcafa0789165bd47900a6691f4f3c8b7f5ab2828dc5e737242316361e24bd8
+-- hash: dbc88d118fd38dc9fd7554991f44a7c46aa2b4cacf5db63fa31d105140e55987
 
 name:           hermeneus
 version:        0.1.0.0
@@ -104,12 +104,13 @@ test-suite hermeneus-test
     , yaml >=0.8 && <1
   other-modules:
       DocTests
+      Example.Diary
+      Example.Shopping
       I18n.Hermeneus.AbaList
       I18n.Hermeneus.AesonSpec
       I18n.Hermeneus.ArbitraryInstances
       I18n.Hermeneus.EngineSpec
       I18n.Hermeneus.MessageSpec
       I18n.Hermeneus.NumberHandlingSpec
-      Shopping
       Paths_hermeneus
   default-language: Haskell2010
