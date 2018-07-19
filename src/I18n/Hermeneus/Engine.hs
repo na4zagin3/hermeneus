@@ -117,10 +117,11 @@ translateMessage db l (MessageKey s c) as = do
   -- ToDo: Implement locale fallback
   let isTranslatable = hasTranslation db l (SentenceKey s c) ws
   let locale = if isTranslatable then l else "en"
+  -- ToDo: Log something when using a fallback locale
   ts <- maybeToEither ("Message resource does not contain locale " <> locale) $ M.lookup locale db
   let localizedWords = map (localizeArgument ts) as
   let defaultTemplate = mapLeft show $ parse parseTranslationTemplate "translateTemplate" s :: Either String TranslationTemplate
-  let localizedTemplate = maybeToEither "B" $ getLocalizedTemplate ts (SentenceKey s c) :: Either String TranslationTemplate
+  let localizedTemplate = maybeToEither ("Localized template is malformed: " ++ show (SentenceKey s c)) $ getLocalizedTemplate ts (SentenceKey s c) :: Either String TranslationTemplate
   localizedTemplate <- localizedTemplate <|> defaultTemplate
   let storedWord = M.fromList . map (\(WordKey s p c, x) -> (s ++ "." ++ p, x)) $ M.toList $ translationWords ts -- ToDo: Inefficient and it's wrong to converting the keys to "<msgid>.<msgid_plural>"
   concat <$> translateTemplates localizedTemplate storedWord localizedWords
