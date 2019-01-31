@@ -49,7 +49,8 @@ featureValueFromString = id
 
 type FeaturePair = (FeatureId, FeatureValue)
 
-type FeatureEnv = Map FeatureId FeatureValue
+newtype FeatureEnv = FeatureEnv (Map FeatureId FeatureValue)
+  deriving (Eq, Ord, Show, Read, Generic)
 newtype FeatureCondition = FeatureCondition (Map FeatureId FeatureValue)
   deriving (Eq, Ord, Show, Read, Generic)
 
@@ -140,7 +141,7 @@ numberHandlingGrc = NumberHandling pluralValue [NumberFeature (NH.EEq NH.ETarget
 
 -- Todo locale specific number format
 translateNumber :: LangInfo -> Integer -> LocalizedWord
-translateNumber li x = LocalizedWord (M.singleton numberFeature $ determineNumber x $ numberHandling li) [(FeatureCondition mempty, show x)]
+translateNumber li x = LocalizedWord (FeatureEnv $ M.singleton numberFeature $ determineNumber x $ numberHandling li) [(FeatureCondition mempty, show x)]
 
 determineNumber :: Integer -> NumberHandling -> FeatureId
 determineNumber x (NumberHandling d cs) = determineNumberWithCond x d cs
@@ -164,7 +165,7 @@ newtype LangInfo = LangInfo { numberHandling :: NumberHandling
 --
 
 nonTranslatedString :: String -> LocalizedWord
-nonTranslatedString x = LocalizedWord M.empty [(FeatureCondition mempty, x)]
+nonTranslatedString x = LocalizedWord (FeatureEnv M.empty) [(FeatureCondition mempty, x)]
 
 genderFeature, numberFeature :: FeatureId
 genderFeature = featureIdFromString "gender"

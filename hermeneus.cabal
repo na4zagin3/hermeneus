@@ -1,8 +1,10 @@
--- This file has been generated from package.yaml by hpack version 0.28.2.
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.1.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: dbc88d118fd38dc9fd7554991f44a7c46aa2b4cacf5db63fa31d105140e55987
+-- hash: d889a5fb6a09413b2c428bcdee6c7b822f10b0fd0a59387b7d15cce8c7168a04
 
 name:           hermeneus
 version:        0.1.0.0
@@ -17,16 +19,26 @@ copyright:      2018 Noriaki Sakamoto
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
-cabal-version:  >= 1.10
 extra-source-files:
-    ChangeLog.md
     README.md
+    ChangeLog.md
 
 source-repository head
   type: git
   location: https://github.com/githubuser/hermeneus
 
 library
+  exposed-modules:
+      I18n.Hermeneus
+      I18n.Hermeneus.Aeson
+      I18n.Hermeneus.Database
+      I18n.Hermeneus.Engine
+      I18n.Hermeneus.Message
+      I18n.Hermeneus.NumberHandling
+      I18n.Hermeneus.Prim
+      Lib
+  other-modules:
+      Paths_hermeneus
   hs-source-dirs:
       src
   build-depends:
@@ -40,21 +52,12 @@ library
     , syb
     , text >=1.2 && <2
     , yaml >=0.8 && <1
-  exposed-modules:
-      I18n.Hermeneus
-      I18n.Hermeneus.Aeson
-      I18n.Hermeneus.Database
-      I18n.Hermeneus.Engine
-      I18n.Hermeneus.Message
-      I18n.Hermeneus.NumberHandling
-      I18n.Hermeneus.Prim
-      Lib
-  other-modules:
-      Paths_hermeneus
   default-language: Haskell2010
 
 executable hermeneus-exe
   main-is: Main.hs
+  other-modules:
+      Paths_hermeneus
   hs-source-dirs:
       app
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
@@ -70,13 +73,22 @@ executable hermeneus-exe
     , syb
     , text >=1.2 && <2
     , yaml >=0.8 && <1
-  other-modules:
-      Paths_hermeneus
   default-language: Haskell2010
 
 test-suite hermeneus-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
+  other-modules:
+      DocTests
+      Example.Diary
+      Example.Shopping
+      I18n.Hermeneus.AbaList
+      I18n.Hermeneus.AesonSpec
+      I18n.Hermeneus.ArbitraryInstances
+      I18n.Hermeneus.EngineSpec
+      I18n.Hermeneus.MessageSpec
+      I18n.Hermeneus.NumberHandlingSpec
+      Paths_hermeneus
   hs-source-dirs:
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
@@ -102,15 +114,4 @@ test-suite hermeneus-test
     , tasty-quickcheck
     , text >=1.2 && <2
     , yaml >=0.8 && <1
-  other-modules:
-      DocTests
-      Example.Diary
-      Example.Shopping
-      I18n.Hermeneus.AbaList
-      I18n.Hermeneus.AesonSpec
-      I18n.Hermeneus.ArbitraryInstances
-      I18n.Hermeneus.EngineSpec
-      I18n.Hermeneus.MessageSpec
-      I18n.Hermeneus.NumberHandlingSpec
-      Paths_hermeneus
   default-language: Haskell2010

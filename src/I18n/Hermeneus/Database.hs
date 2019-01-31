@@ -38,7 +38,7 @@ exampleEn = TranslationSet { langInfo = LangInfo { numberHandling = numberHandli
 getEnglishWordTranslation :: String -> String -> LocalizedWord
 getEnglishWordTranslation singular plural = LocalizedWord featureEnv forms
   where
-    featureEnv = M.empty
+    featureEnv = FeatureEnv M.empty
     forms = [ (FeatureCondition $ M.fromList [(numberFeature, singularValue)], singular)
             , (FeatureCondition $ M.fromList [(numberFeature, pluralValue)], plural)
             ]

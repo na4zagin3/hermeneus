@@ -73,6 +73,15 @@ instance (Arbitrary LangInfo) where
   arbitrary = genericArbitrary uniform
   shrink = genericShrink
 
+instance (Arbitrary FeatureEnv) where
+  arbitrary = do
+    n <- getSize
+    k <- choose (0,n)
+    fs <- vectorOf n genNonEmptyAlphaNumString
+    vs <- vectorOf n genNonEmptyAlphaNumString
+    return . FeatureEnv . M.fromList $ zip fs vs
+  shrink = genericShrink
+
 instance (Arbitrary FeatureCondition) where
   arbitrary = do
     n <- getSize
@@ -88,7 +97,7 @@ instance (Arbitrary LocalizedWord) where
     k <- choose (0,n)
     fs <- vectorOf n genNonEmptyAlphaNumString
     vs <- vectorOf n genNonEmptyAlphaNumString
-    let env = M.fromList $ zip fs vs
+    let env = FeatureEnv . M.fromList $ zip fs vs
     LocalizedWord env <$> scale (`div` 2) arbitrary
   shrink = genericShrink
 

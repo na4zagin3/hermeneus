@@ -26,6 +26,9 @@ instance FromJSON NH.Expr where
 instance ToJSON NH.Expr where
   toJSON = JSON.String . NH.printExpr
 
+instance FromJSON FeatureEnv where
+instance ToJSON FeatureEnv where
+
 instance FromJSON FeatureCondition where
 instance ToJSON FeatureCondition where
 

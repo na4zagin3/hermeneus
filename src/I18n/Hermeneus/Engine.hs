@@ -30,10 +30,10 @@ selectDefaultWord [] = error "selectDefaultWord"
 selectDefaultWord ((_, w) : _) = w
 
 matchFeatureConstraint :: FeatureCondition -> FeatureEnv -> Bool
-matchFeatureConstraint (FeatureCondition kvs) env = kvs `M.isSubmapOf` env
+matchFeatureConstraint (FeatureCondition kvs) (FeatureEnv env) = kvs `M.isSubmapOf` env
 
 wordFeatures :: LocalizedWord -> Set FeatureId
-wordFeatures (LocalizedWord fe fcss) = M.keysSet fe `S.union` S.unions (map (extractFeatures . fst) fcss)
+wordFeatures (LocalizedWord (FeatureEnv fe) fcss) = M.keysSet fe `S.union` S.unions (map (extractFeatures . fst) fcss)
   where
     extractFeatures (FeatureCondition fcs) = M.keysSet fcs
 
@@ -49,15 +49,15 @@ resolveFeatureConstraintExpr :: [FeatureEnv] -> StoredWordMap FeatureEnv -> Feat
 resolveFeatureConstraintExpr argEnvs storedWordEnvs (FeatureConstraintExpr fid fre) = derefFeature fre
   where
     derefFeature (ConcordWord wref) = do
-      features <- derefWordReference argEnvs storedWordEnvs wref
+      (FeatureEnv features) <- derefWordReference argEnvs storedWordEnvs wref
       let errorMsg = "The word referenced by " ++ show wref ++ " does not have feature " ++ fid ++ "."
       maybeToEither errorMsg . fmap (M.singleton fid) $ M.lookup fid features
     derefFeature (Feature feature) = pure $ M.singleton fid feature
 
-resolveFeatureConstraintExprs :: [FeatureEnv] -> StoredWordMap FeatureEnv -> FeatureEnv -> [FeatureConstraintExpr] -> Either String (Map FeatureId FeatureValue)
-resolveFeatureConstraintExprs argEnvs storedWordEnvs wordEnv fces = do
+resolveFeatureConstraintExprs :: [FeatureEnv] -> StoredWordMap FeatureEnv -> FeatureEnv -> [FeatureConstraintExpr] -> Either String FeatureEnv
+resolveFeatureConstraintExprs argEnvs storedWordEnvs (FeatureEnv wordEnv) fces = do
   envs <- mapM (resolveFeatureConstraintExpr argEnvs storedWordEnvs) fces
-  return $ M.unions (wordEnv : envs)
+  return . FeatureEnv $ M.unions (wordEnv : envs)
 
 resolveFeaturePlaceholder :: [FeatureEnv] -> StoredWordMap FeatureEnv -> Placeholder -> Either String FeatureEnv
 resolveFeaturePlaceholder argEnvs storedWordEnvs (wref, fces) = do
