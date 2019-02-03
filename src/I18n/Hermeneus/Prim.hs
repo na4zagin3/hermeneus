@@ -83,8 +83,9 @@ data FeatureReferenceExpr = ConcordWord WordReference
 --
 -- Word translation data
 --
+type ConditionalWord = [(FeatureCondition, String)]
 
-data LocalizedWord = LocalizedWord FeatureEnv [(FeatureCondition, String)]
+data LocalizedWord = LocalizedWord FeatureEnv ConditionalWord
   deriving (Eq, Ord, Show, Read, Generic)
 
 --

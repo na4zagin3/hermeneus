@@ -18,7 +18,7 @@ import I18n.Hermeneus.Message( parseFeatureId, parseFeatureValue )
 import I18n.Hermeneus.Prim
 
 normalize :: LocalizedWord -> LocalizedWord
-normalize (LocalizedWord e ts) = LocalizedWord (normalizeFeatureEnv e) (map normalizeTranslation ts)
+normalize (LocalizedWord e cw) = LocalizedWord (normalizeFeatureEnv e) (normalizeConditionalWord cw)
 
 normalizeFeatureEnv :: FeatureEnv -> FeatureEnv
 normalizeFeatureEnv (FeatureEnv fe) = FeatureEnv $ M.filterWithKey f fe
@@ -26,6 +26,9 @@ normalizeFeatureEnv (FeatureEnv fe) = FeatureEnv $ M.filterWithKey f fe
     f "" _ = False
     f _ "" = False
     f _ _ = True
+
+normalizeConditionalWord :: ConditionalWord -> ConditionalWord
+normalizeConditionalWord cw = map normalizeTranslation cw
 
 normalizeTranslation :: (FeatureCondition, String) -> (FeatureCondition, String)
 normalizeTranslation (FeatureCondition cs, w) = (FeatureCondition cs', w)
@@ -35,17 +38,24 @@ normalizeTranslation (FeatureCondition cs, w) = (FeatureCondition cs', w)
     f _ "" = False
     f _ _ = True
 
+parseConditionalWord :: Stream s m Char => ParsecT s u m ConditionalWord
+parseConditionalWord = do
+  parseFeature`sepBy` (string ";")
+
+printConditionalWord :: (IsString s, Semigroup s, Monoid s) => ConditionalWord -> s
+printConditionalWord fs = mconcat (intersperse (fromString ";") ts)
+  where
+    ts = map printFeature fs
+
 parseLocalizedWord :: Stream s m Char => ParsecT s u m LocalizedWord
 parseLocalizedWord = do
   featureEnv <- parseFeatureEnv
   string "~"
-  features <- parseFeature`sepBy` (string ";")
-  return $ LocalizedWord featureEnv features
+  cw <- parseConditionalWord
+  return $ LocalizedWord featureEnv cw
 
 printLocalizedWord :: (IsString s, Semigroup s, Monoid s) => LocalizedWord -> s
-printLocalizedWord (LocalizedWord e fs) = printFeatureEnv e <> "~" <> mconcat (intersperse (fromString ";") ts)
-  where
-    ts = map printFeature fs
+printLocalizedWord (LocalizedWord e cw) = printFeatureEnv e <> "~" <> printConditionalWord cw
 
 parseFeatureEnv :: Stream s m Char => ParsecT s u m FeatureEnv
 parseFeatureEnv = do
