@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d889a5fb6a09413b2c428bcdee6c7b822f10b0fd0a59387b7d15cce8c7168a04
+-- hash: e4e242c9d41b537f34fd9f6e3d590995a32188cc76bba06da765d97f87b16af1
 
 name:           hermeneus
 version:        0.1.0.0
@@ -36,6 +36,7 @@ library
       I18n.Hermeneus.Message
       I18n.Hermeneus.NumberHandling
       I18n.Hermeneus.Prim
+      I18n.Hermeneus.Word
       Lib
   other-modules:
       Paths_hermeneus
@@ -88,6 +89,7 @@ test-suite hermeneus-test
       I18n.Hermeneus.EngineSpec
       I18n.Hermeneus.MessageSpec
       I18n.Hermeneus.NumberHandlingSpec
+      I18n.Hermeneus.WordSpec
       Paths_hermeneus
   hs-source-dirs:
       test
