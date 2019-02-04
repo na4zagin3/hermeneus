@@ -12,6 +12,7 @@ module I18n.Hermeneus.Database ( Database
 where
 
 import Data.Maybe
+import qualified Data.List.NonEmpty as NEL
 import Data.Set (Set)
 import qualified Data.Set as S
 import Data.Map (Map)
@@ -36,7 +37,7 @@ exampleEn = TranslationSet { langInfo = LangInfo { numberHandling = numberHandli
                            }
 
 getEnglishWordTranslation :: String -> String -> LocalizedWord
-getEnglishWordTranslation singular plural = LocalizedWord featureEnv forms
+getEnglishWordTranslation singular plural = LocalizedWord featureEnv $ NEL.fromList forms
   where
     featureEnv = FeatureEnv M.empty
     forms = [ (FeatureCondition $ M.fromList [(numberFeature, singularValue)], singular)

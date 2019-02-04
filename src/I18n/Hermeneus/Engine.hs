@@ -2,6 +2,7 @@ module I18n.Hermeneus.Engine where
 
 import Control.Applicative
 import Data.Maybe
+import qualified Data.List.NonEmpty as NEL
 import Data.Semigroup ((<>))
 import Data.Set (Set)
 import qualified Data.Set as S
@@ -33,9 +34,10 @@ matchFeatureConstraint :: FeatureCondition -> FeatureEnv -> Bool
 matchFeatureConstraint (FeatureCondition kvs) (FeatureEnv env) = kvs `M.isSubmapOf` env
 
 wordFeatures :: LocalizedWord -> Set FeatureId
-wordFeatures (LocalizedWord (FeatureEnv fe) fcss) = M.keysSet fe `S.union` S.unions (map (extractFeatures . fst) fcss)
+wordFeatures (LocalizedWord (FeatureEnv fe) fcss) = M.keysSet fe `S.union` featuresInConditions
   where
     extractFeatures (FeatureCondition fcs) = M.keysSet fcs
+    featuresInConditions = S.unions (map (extractFeatures . fst) $ NEL.toList fcss)
 
 
 -- |
@@ -70,7 +72,7 @@ maybeToEither = flip maybe Right . Left
 translatePlaceholders :: [Placeholder] -> StoredWordMap LocalizedWord -> [LocalizedWord] -> Either String [String]
 translatePlaceholders phs storedWords args = do
     let featureEnv (LocalizedWord fe _) = fe
-    let wordTranslation (LocalizedWord _ wts) = wts
+    let wordTranslation (LocalizedWord _ wts) = NEL.toList wts
     let argEnvs = map featureEnv args
     let storedWordEnvs = M.map featureEnv storedWords
     let wordTranslations = map wordTranslation args
@@ -99,7 +101,7 @@ translateTemplates (TranslationTemplate tts) storedWords args = do
     f envs (TranslatedString str:ts) = (nonEmptyStringToString str :) <$> f envs ts
     f (env:envs) (Placeholder ph@(wref, _):ts) = do
       w <- derefWordReference wordTranslations storedWordTranslations wref
-      tstr <- translateTemplate env ph w
+      tstr <- translateTemplate env ph $ NEL.toList w
       (tstr :) <$> f envs ts
 
 mapLeft :: (a -> c) -> Either a b -> Either c b

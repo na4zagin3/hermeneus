@@ -5,6 +5,7 @@ module I18n.Hermeneus.Aeson where
 
 import Data.Aeson as JSON
 import qualified Data.Char as C
+import qualified Data.List.NonEmpty as NEL
 import qualified Data.Map as M
 import Data.Maybe
 import GHC.Generics
@@ -101,7 +102,7 @@ data WordEntry = WordEntry
   , wordWordPlural :: Maybe String
   , wordContext :: String
   , wordController :: FeatureEnv
-  , wordTranslations :: [WordTranslationEntry]
+  , wordTranslations :: NEL.NonEmpty WordTranslationEntry
   } deriving (Read, Show, Generic)
 
 instance FromJSON WordEntry where
@@ -112,10 +113,10 @@ instance ToJSON WordEntry where
 
                                         }
 wordEntryToKey :: WordEntry -> (WordKey, LocalizedWord)
-wordEntryToKey (WordEntry w p c o t) = (WordKey w (fromMaybe "" p) c, LocalizedWord o $ map wordTranslationEntryToKey t) -- ToDo: Fix this
+wordEntryToKey (WordEntry w p c o t) = (WordKey w (fromMaybe "" p) c, LocalizedWord o $ NEL.map wordTranslationEntryToKey t) -- ToDo: Fix this
 
 wordKeyToEntry :: (WordKey, LocalizedWord) -> WordEntry
-wordKeyToEntry (WordKey w p c, LocalizedWord o t) = (WordEntry w (f p) c o $ map wordTranslationKeyToEntry t)
+wordKeyToEntry (WordKey w p c, LocalizedWord o t) = (WordEntry w (f p) c o $ NEL.map wordTranslationKeyToEntry t)
   where
     f "" = Nothing
     f x = Just x

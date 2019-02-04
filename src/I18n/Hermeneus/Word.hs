@@ -4,6 +4,7 @@ module I18n.Hermeneus.Word where
 import Control.Applicative ((<$>))
 import Data.Functor
 import Data.List (intersperse)
+import qualified Data.List.NonEmpty as NEL
 import Data.Maybe
 import Data.Semigroup (Semigroup, (<>))
 import Data.Set (Set)
@@ -28,7 +29,7 @@ normalizeFeatureEnv (FeatureEnv fe) = FeatureEnv $ M.filterWithKey f fe
     f _ _ = True
 
 normalizeConditionalWord :: ConditionalWord -> ConditionalWord
-normalizeConditionalWord cw = map normalizeTranslation cw
+normalizeConditionalWord cw = NEL.map normalizeTranslation cw
 
 normalizeTranslation :: (FeatureCondition, String) -> (FeatureCondition, String)
 normalizeTranslation (FeatureCondition cs, w) = (FeatureCondition cs', w)
@@ -40,12 +41,12 @@ normalizeTranslation (FeatureCondition cs, w) = (FeatureCondition cs', w)
 
 parseConditionalWord :: Stream s m Char => ParsecT s u m ConditionalWord
 parseConditionalWord = do
-  parseFeature`sepBy` (string ";")
+  NEL.fromList <$> parseFeature `sepBy1` (string ";")
 
 printConditionalWord :: (IsString s, Semigroup s, Monoid s) => ConditionalWord -> s
 printConditionalWord fs = mconcat (intersperse (fromString ";") ts)
   where
-    ts = map printFeature fs
+    ts = map printFeature $ NEL.toList fs
 
 parseLocalizedWord :: Stream s m Char => ParsecT s u m LocalizedWord
 parseLocalizedWord = do

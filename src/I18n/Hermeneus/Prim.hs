@@ -3,7 +3,7 @@
 module I18n.Hermeneus.Prim where
 
 import Data.Fixed
-import Data.List.NonEmpty (NonEmpty)
+import Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.List.NonEmpty as NEL
 import Data.Maybe
 import Data.Semigroup ((<>))
@@ -83,7 +83,7 @@ data FeatureReferenceExpr = ConcordWord WordReference
 --
 -- Word translation data
 --
-type ConditionalWord = [(FeatureCondition, String)]
+type ConditionalWord = NonEmpty (FeatureCondition, String)
 
 data LocalizedWord = LocalizedWord FeatureEnv ConditionalWord
   deriving (Eq, Ord, Show, Read, Generic)
@@ -142,7 +142,7 @@ numberHandlingGrc = NumberHandling pluralValue [NumberFeature (NH.EEq NH.ETarget
 
 -- Todo locale specific number format
 translateNumber :: LangInfo -> Integer -> LocalizedWord
-translateNumber li x = LocalizedWord (FeatureEnv $ M.singleton numberFeature $ determineNumber x $ numberHandling li) [(FeatureCondition mempty, show x)]
+translateNumber li x = LocalizedWord (FeatureEnv $ M.singleton numberFeature $ determineNumber x $ numberHandling li) $ (FeatureCondition mempty, show x) :| []
 
 determineNumber :: Integer -> NumberHandling -> FeatureId
 determineNumber x (NumberHandling d cs) = determineNumberWithCond x d cs
@@ -166,7 +166,7 @@ newtype LangInfo = LangInfo { numberHandling :: NumberHandling
 --
 
 nonTranslatedString :: String -> LocalizedWord
-nonTranslatedString x = LocalizedWord (FeatureEnv M.empty) [(FeatureCondition mempty, x)]
+nonTranslatedString x = LocalizedWord (FeatureEnv M.empty) $ (FeatureCondition mempty, x) :| []
 
 genderFeature, numberFeature :: FeatureId
 genderFeature = featureIdFromString "gender"

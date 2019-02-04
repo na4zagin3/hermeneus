@@ -1,6 +1,7 @@
 module I18n.Hermeneus.EngineSpec where
 
 import Data.Either
+import qualified Data.List.NonEmpty as NEL
 import qualified Data.Map as M
 import I18n.Hermeneus.Prim
 
@@ -43,12 +44,13 @@ unit_resolveFeatures = do
 unit_translatePlaceholders :: IO ()
 unit_translatePlaceholders = do
   translatePlaceholders [] M.empty [] @?= Right []
-  translatePlaceholders [(PlaceholderNumber 0, [])] M.empty [LocalizedWord (featureEnv []) [(featureCondition [], "a")]] @?= Right ["a"]
+  translatePlaceholders [(PlaceholderNumber 0, [])] M.empty [LocalizedWord (featureEnv []) (NEL.fromList [(featureCondition [], "a")])] @?= Right ["a"]
   let placeholders = [(PlaceholderNumber 1, [FeatureConstraintExpr numberFeature (ConcordWord (PlaceholderNumber 0))]), (PlaceholderNumber 0, [])]
-  let word1 = LocalizedWord (featureEnv [(numberFeature, singularValue)]) [(featureCondition [], "one")]
-  let wordCar = LocalizedWord (featureEnv []) [ (featureCondition [(numberFeature, singularValue)], "car")
-                                              , (featureCondition [(numberFeature, singularValue)], "cars")
-                                              ]
+  let word1 = LocalizedWord (featureEnv [(numberFeature, singularValue)]) (NEL.fromList [(featureCondition [], "one")])
+  let wordCar = LocalizedWord (featureEnv []) (NEL.fromList
+                                               [ (featureCondition [(numberFeature, singularValue)], "car")
+                                               , (featureCondition [(numberFeature, singularValue)], "cars")
+                                               ])
   let argument1 = [ word1, wordCar ]
   translatePlaceholders placeholders M.empty argument1 @?= Right ["one", "car"]
 
