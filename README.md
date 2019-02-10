@@ -1,4 +1,6 @@
 # Hermeneus
+[![Build Status](https://travis-ci.com/na4zagin3/hermeneus.svg?branch=master)](https://travis-ci.com/na4zagin3/hermeneus)
+
 A new message-internationalization framework that handles agreement.
 
 See: <https://en.wikipedia.org/wiki/Agreement_(linguistics)>
