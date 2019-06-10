@@ -1,8 +1,8 @@
 properties:
   number:
-    default: single
+    default: singular
     values: # 数に関する条件の定義は https://www.gnu.org/software/gettext/manual/gettext.html#Translating-plural-forms を見ること
-      - value: single
+      - value: singular
         condition: "n==1"
       - value: plural
         condition: "n!=1"

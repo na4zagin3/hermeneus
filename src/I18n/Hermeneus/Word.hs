@@ -15,7 +15,6 @@ import Data.String
 
 import Text.Parsec
 
-import I18n.Hermeneus.Message( parseFeatureId, parseFeatureValue )
 import I18n.Hermeneus.Prim
 
 normalize :: LocalizedWord -> LocalizedWord

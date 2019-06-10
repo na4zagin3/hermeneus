@@ -16,6 +16,7 @@ import Data.String
 import Text.Parsec
 
 import I18n.Hermeneus.Prim
+import I18n.Hermeneus.Word (parseConditionalWord, printConditionalWord)
 
 -- ToDo: Provide escape sequence in word reference
 
@@ -43,26 +44,23 @@ parseTranslatedStringChar = try escapedBrace <|> noneOf "{}"
     escapedBrace = (string "{{" $> '{') <|> (string "}}" $> '}')
 
 parseWordReference :: Stream s m Char => ParsecT s u m WordReference
-parseWordReference = parseWord <|> parseNumber
+parseWordReference = parseWord <|> parseWordRef <|> parseNumber
   where
     parseNumber = PlaceholderNumber . read <$> many1 digit
-    parseWord = do
+    parseWordRef = do
       string "*"
       (fmap WordRef . many $ (try escapedStar <|> noneOf "*")) <* string "*"
     escapedStar :: Stream s m Char => ParsecT s u m Char
     escapedStar = string "**" $> '*'
+    parseWord = do
+      string ":"
+      ConditionalWord <$> parseConditionalWord
 
 parseFeatureConstraintExpr :: Stream s m Char => ParsecT s u m FeatureConstraintExpr
 parseFeatureConstraintExpr = do
   i <- parseFeatureId
   expr <- parseFeatureReferenceExpr
   return $ FeatureConstraintExpr i expr
-
-parseFeatureId :: Stream s m Char => ParsecT s u m FeatureId
-parseFeatureId = featureIdFromString <$> many1 alphaNum
-
-parseFeatureValue :: Stream s m Char => ParsecT s u m FeatureValue
-parseFeatureValue = featureValueFromString <$> many1 alphaNum
 
 parseFeatureReferenceExpr :: Stream s m Char => ParsecT s u m FeatureReferenceExpr
 parseFeatureReferenceExpr = parseConcordWord <|> parseFeature
@@ -104,6 +102,7 @@ printWordReference (WordRef w) = "*" <> fromString (concatMap escapeStar w) <> "
   where
     escapeStar '*' = "**"
     escapeStar x = [x]
+printWordReference (ConditionalWord cw) = ":" <> printConditionalWord cw
 
 printFeatureConstraintExpr :: (IsString s, Semigroup s, Monoid s) => FeatureConstraintExpr -> s
 printFeatureConstraintExpr (FeatureConstraintExpr i e) = printFeatureId i <> printFeatureReferenceExpr e

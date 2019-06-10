@@ -30,6 +30,7 @@ instance (Arbitrary a) => Arbitrary (NEL.NonEmpty a) where
 instance Arbitrary WordReference where
   arbitrary = oneof [ PlaceholderNumber . getNonNegative <$> arbitrary
                     , WordRef . getUnicodeString <$> arbitrary
+                    , ConditionalWord <$> arbitrary
                     ]
   shrink = genericShrink
 

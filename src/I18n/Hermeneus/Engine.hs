@@ -42,16 +42,25 @@ wordFeatures (LocalizedWord (FeatureEnv fe) fcss) = M.keysSet fe `S.union` featu
 
 -- |
 -- Positinally lefter constaint expression has priority.
+-- TODO refactor this
+derefWordReference :: (ConditionalWord -> a) -> [a] -> StoredWordMap a -> WordReference -> Either String a
+derefWordReference _ argEnvs _              (PlaceholderNumber phid) = pure $ argEnvs !! fromInteger phid -- ToDo: Fix about corner cases
+derefWordReference _ _       storedWordEnvs (WordRef wk) = maybeToEither ("There are no word: " ++ wk) $ M.lookup wk storedWordEnvs
+derefWordReference f _       _              (ConditionalWord cw) = pure $ f cw
 
-derefWordReference :: [a] -> StoredWordMap a -> WordReference -> Either String a
-derefWordReference argEnvs _              (PlaceholderNumber phid) = pure $ argEnvs !! fromInteger phid -- ToDo: Fix about corner cases
-derefWordReference _       storedWordEnvs (WordRef wk) = maybeToEither ("There are no word: " ++ wk) $ M.lookup wk storedWordEnvs
+derefWordReferenceFeatureEnv :: [FeatureEnv] -> StoredWordMap FeatureEnv -> WordReference -> Either String FeatureEnv
+derefWordReferenceFeatureEnv = derefWordReference f
+  where
+    f _ = FeatureEnv M.empty
+
+derefWordReferenceConditionalWord :: [ConditionalWord] -> StoredWordMap ConditionalWord -> WordReference -> Either String ConditionalWord
+derefWordReferenceConditionalWord = derefWordReference id
 
 resolveFeatureConstraintExpr :: [FeatureEnv] -> StoredWordMap FeatureEnv -> FeatureConstraintExpr -> Either String (Map FeatureId FeatureValue)
 resolveFeatureConstraintExpr argEnvs storedWordEnvs (FeatureConstraintExpr fid fre) = derefFeature fre
   where
     derefFeature (ConcordWord wref) = do
-      (FeatureEnv features) <- derefWordReference argEnvs storedWordEnvs wref
+      (FeatureEnv features) <- derefWordReferenceFeatureEnv argEnvs storedWordEnvs wref
       let errorMsg = "The word referenced by " ++ show wref ++ " does not have feature " ++ fid ++ "."
       maybeToEither errorMsg . fmap (M.singleton fid) $ M.lookup fid features
     derefFeature (Feature feature) = pure $ M.singleton fid feature
@@ -63,7 +72,7 @@ resolveFeatureConstraintExprs argEnvs storedWordEnvs (FeatureEnv wordEnv) fces =
 
 resolveFeaturePlaceholder :: [FeatureEnv] -> StoredWordMap FeatureEnv -> Placeholder -> Either String FeatureEnv
 resolveFeaturePlaceholder argEnvs storedWordEnvs (wref, fces) = do
-  features <- derefWordReference argEnvs storedWordEnvs wref
+  features <- derefWordReferenceFeatureEnv argEnvs storedWordEnvs wref
   resolveFeatureConstraintExprs argEnvs storedWordEnvs features fces
 
 maybeToEither :: s -> Maybe a -> Either s a
@@ -100,7 +109,7 @@ translateTemplates (TranslationTemplate tts) storedWords args = do
     f _ [] = pure []
     f envs (TranslatedString str:ts) = (nonEmptyStringToString str :) <$> f envs ts
     f (env:envs) (Placeholder ph@(wref, _):ts) = do
-      w <- derefWordReference wordTranslations storedWordTranslations wref
+      w <- derefWordReferenceConditionalWord wordTranslations storedWordTranslations wref
       tstr <- translateTemplate env ph $ NEL.toList w
       (tstr :) <$> f envs ts
 

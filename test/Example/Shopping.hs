@@ -32,14 +32,19 @@ unit_translationResource = do
 wordCar  = ArgWord "car"  "cars" "com.example.shopping.buy"
 wordBook = ArgWord "book" "books" "com.example.shopping.buy"
 sentenceBought = MessageKey "Bought {0} {1:number#0}." "com.example.shopping.buy"
+sentenceDish = MessageKey "{:number=singular:\"A dish\";number=plural:\"Dishes\":number#0}" "com.example.shopping.buy"
 
 unit_translations :: IO ()
 unit_translations = do
   db <- translationResource
   let msgBought l n w = translateMessage db l sentenceBought [ArgNumber n, w]
   msgBought "en" 1 wordCar @?= Right "Bought 1 car."
-  msgBought "en" 2 wordCar @?= Right "Bought 2 cars." -- ToDo: Fix this
+  msgBought "en" 2 wordCar @?= Right "Bought 2 cars."
   msgBought "en" 2 wordBook @?= Right "Bought 2 books."
   msgBought "ja" 1 wordCar @?= Right "1台の車を買った。"
   msgBought "ja" 2 wordCar @?= Right "2台の車を買った。"
   msgBought "ja" 1 wordBook @?= Right "1冊の本を買った。"
+
+  let msgDish l n = translateMessage db l sentenceDish [ArgNumber n]
+  msgDish "en" 1 @?= Right "A dish"
+  msgDish "en" 2 @?= Right "Dishes"

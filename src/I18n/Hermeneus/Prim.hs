@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveGeneric, FlexibleContexts #-}
 
 module I18n.Hermeneus.Prim where
 
@@ -12,6 +12,7 @@ import qualified Data.Set as S
 import Data.Map (Map)
 import qualified Data.Map as M
 import GHC.Generics (Generic)
+import Text.Parsec (Stream, ParsecT, many1, alphaNum)
 
 import qualified I18n.Hermeneus.NumberHandling as NH
 
@@ -71,6 +72,7 @@ type Placeholder = (WordReference, [FeatureConstraintExpr])
 
 data WordReference = PlaceholderNumber Integer
                    | WordRef String
+                   | ConditionalWord ConditionalWord
   deriving (Eq, Ord, Show, Read, Generic)
 
 data FeatureConstraintExpr = FeatureConstraintExpr FeatureId FeatureReferenceExpr
@@ -182,3 +184,12 @@ singularValue = featureValueFromString "singular"
 pluralValue = featureValueFromString "plural"
 noneValue = featureValueFromString "none"
 dualValue = featureValueFromString "dual"
+
+--
+-- Common parser
+--
+parseFeatureId :: Stream s m Char => ParsecT s u m FeatureId
+parseFeatureId = featureIdFromString <$> many1 alphaNum
+
+parseFeatureValue :: Stream s m Char => ParsecT s u m FeatureValue
+parseFeatureValue = featureValueFromString <$> many1 alphaNum
