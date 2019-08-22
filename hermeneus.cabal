@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: abc3add9875798ad3f13564653e4f3bd15e7401504371d76ed891cf05771b033
+-- hash: 6fdece3a81ca24acf946d1fdab7853ac349d539f0a68981693c649f29a7c927f
 
 name:           hermeneus
 version:        0.1.0.0
@@ -52,7 +52,6 @@ library
     , parsers
     , syb
     , text >=1.2 && <2
-    , yaml >=0.8 && <1
   default-language: Haskell2010
 
 executable hermeneus-exe
@@ -73,7 +72,6 @@ executable hermeneus-exe
     , parsers
     , syb
     , text >=1.2 && <2
-    , yaml >=0.8 && <1
   default-language: Haskell2010
 
 test-suite hermeneus-test
@@ -115,5 +113,5 @@ test-suite hermeneus-test
     , tasty-hunit
     , tasty-quickcheck
     , text >=1.2 && <2
-    , yaml >=0.8 && <1
+    , yaml
   default-language: Haskell2010

@@ -21,7 +21,6 @@ description:         Please see the README on Github at <https://github.com/na4z
 
 dependencies:
 - base >= 4.7 && < 5
-- yaml >= 0.8 && < 1
 - aeson >= 1.2 && < 1.5
 - text >= 1.2 && < 2
 - bytestring >= 0.10 && < 1
@@ -57,11 +56,12 @@ tests:
     - hermeneus
     - doctest
     - filepath
+    - generic-random
     - Glob
     - tasty
     - tasty-discover
     - tasty-hunit
     - tasty-hspec
     - tasty-quickcheck
-    - generic-random
     - quickcheck-unicode
+    - yaml
