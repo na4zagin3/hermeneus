@@ -37,8 +37,7 @@ instance Arbitrary WordReference where
 instance (Arbitrary FeatureConstraintExpr) where
   arbitrary = do
     f <- nonEmptyStringFromString <$> genNonEmptyAlphaNumString
-    expr <- arbitrary
-    return $ FeatureConstraintExpr f expr
+    FeatureConstraintExpr f <$> arbitrary
   shrink = genericShrink
 
 instance (Arbitrary FeatureReferenceExpr) where
@@ -62,8 +61,7 @@ instance (Arbitrary TranslationTemplate) where
 instance (Arbitrary NumberFeature) where
   arbitrary = do
     e <- NH.normalize <$> arbitrary
-    i <- genNonEmptyAlphaNumString
-    return $ NumberFeature e i
+    NumberFeature e <$> genNonEmptyAlphaNumString
   shrink = genericShrink
 
 instance (Arbitrary NumberHandling) where
@@ -74,22 +72,19 @@ instance (Arbitrary LangInfo) where
   arbitrary = genericArbitrary uniform
   shrink = genericShrink
 
+genNonEmptyAlphaNumMap = do
+ n <- getSize
+ k <- choose (0,n)
+ fs <- vectorOf n genNonEmptyAlphaNumString
+ vs <- vectorOf n genNonEmptyAlphaNumString
+ return . M.fromList $ zip fs vs
+
 instance (Arbitrary FeatureEnv) where
-  arbitrary = do
-    n <- getSize
-    k <- choose (0,n)
-    fs <- vectorOf n genNonEmptyAlphaNumString
-    vs <- vectorOf n genNonEmptyAlphaNumString
-    return . FeatureEnv . M.fromList $ zip fs vs
+  arbitrary = FeatureEnv <$> genNonEmptyAlphaNumMap
   shrink = genericShrink
 
 instance (Arbitrary FeatureCondition) where
-  arbitrary = do
-    n <- getSize
-    k <- choose (0,n)
-    fs <- vectorOf n genNonEmptyAlphaNumString
-    vs <- vectorOf n genNonEmptyAlphaNumString
-    return . FeatureCondition . M.fromList $ zip fs vs
+  arbitrary = FeatureCondition <$> genNonEmptyAlphaNumMap
   shrink = genericShrink
 
 instance (Arbitrary LocalizedWord) where

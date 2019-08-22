@@ -157,8 +157,8 @@ table   = [ [ prefix "-" ENeg
           , [ binary "||" EOr AssocLeft ]
           ]
 
-binary  name fun assoc = E.Infix (fun <$ reservedOp name) assoc
+binary name fun = E.Infix (fun <$ reservedOp name)
 prefix  name fun       = E.Prefix (fun <$ reservedOp name)
 postfix name fun       = E.Postfix (fun <$ reservedOp name)
 
-reservedOp name = reserve emptyOps name
+reservedOp = reserve emptyOps

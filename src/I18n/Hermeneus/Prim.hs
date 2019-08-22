@@ -151,8 +151,9 @@ determineNumber x (NumberHandling d cs) = determineNumberWithCond x d cs
 
 determineNumberWithCond :: Integer -> FeatureId -> [NumberFeature] -> FeatureId
 determineNumberWithCond _ d [] = d
-determineNumberWithCond x d ((NumberFeature c f) : cs) | NH.evalCond x c = f
-                                          | otherwise = determineNumberWithCond x d cs
+determineNumberWithCond x d (NumberFeature c f:cs)
+  | NH.evalCond x c = f
+  | otherwise = determineNumberWithCond x d cs
 
 --
 -- Language feature data

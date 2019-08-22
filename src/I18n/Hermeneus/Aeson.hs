@@ -116,7 +116,7 @@ wordEntryToKey :: WordEntry -> (WordKey, LocalizedWord)
 wordEntryToKey (WordEntry w p c o t) = (WordKey w (fromMaybe "" p) c, LocalizedWord o $ NEL.map wordTranslationEntryToKey t) -- ToDo: Fix this
 
 wordKeyToEntry :: (WordKey, LocalizedWord) -> WordEntry
-wordKeyToEntry (WordKey w p c, LocalizedWord o t) = (WordEntry w (f p) c o $ NEL.map wordTranslationKeyToEntry t)
+wordKeyToEntry (WordKey w p c, LocalizedWord o t) = WordEntry w (f p) c o $ NEL.map wordTranslationKeyToEntry t
   where
     f "" = Nothing
     f x = Just x

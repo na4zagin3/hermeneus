@@ -1,4 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
 module I18n.Hermeneus.Database ( Database
                                , Context
                                , LangInfo

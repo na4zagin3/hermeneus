@@ -28,7 +28,7 @@ normalizeFeatureEnv (FeatureEnv fe) = FeatureEnv $ M.filterWithKey f fe
     f _ _ = True
 
 normalizeConditionalWord :: ConditionalWord -> ConditionalWord
-normalizeConditionalWord cw = NEL.map normalizeTranslation cw
+normalizeConditionalWord = NEL.map normalizeTranslation
 
 normalizeTranslation :: (FeatureCondition, String) -> (FeatureCondition, String)
 normalizeTranslation (FeatureCondition cs, w) = (FeatureCondition cs', w)
@@ -39,8 +39,7 @@ normalizeTranslation (FeatureCondition cs, w) = (FeatureCondition cs', w)
     f _ _ = True
 
 parseConditionalWord :: Stream s m Char => ParsecT s u m ConditionalWord
-parseConditionalWord = do
-  NEL.fromList <$> parseFeature `sepBy1` (string ";")
+parseConditionalWord = NEL.fromList <$> parseFeature `sepBy1` string ";"
 
 printConditionalWord :: (IsString s, Semigroup s, Monoid s) => ConditionalWord -> s
 printConditionalWord fs = mconcat (intersperse (fromString ";") ts)
@@ -51,15 +50,14 @@ parseLocalizedWord :: Stream s m Char => ParsecT s u m LocalizedWord
 parseLocalizedWord = do
   featureEnv <- parseFeatureEnv
   string "~"
-  cw <- parseConditionalWord
-  return $ LocalizedWord featureEnv cw
+  LocalizedWord featureEnv <$> parseConditionalWord
 
 printLocalizedWord :: (IsString s, Semigroup s, Monoid s) => LocalizedWord -> s
 printLocalizedWord (LocalizedWord e cw) = printFeatureEnv e <> "~" <> printConditionalWord cw
 
 parseFeatureEnv :: Stream s m Char => ParsecT s u m FeatureEnv
 parseFeatureEnv = do
-  entries <- parseFeatureEnvEntry `sepBy` (string ",")
+  entries <- parseFeatureEnvEntry `sepBy` string ","
   return . FeatureEnv $ M.fromList entries
 
 parseFeatureEnvEntry :: Stream s m Char => ParsecT s u m (FeatureId, FeatureValue)
@@ -67,7 +65,7 @@ parseFeatureEnvEntry = do
   i <- parseFeatureId
   string "="
   v <- parseFeatureValue
-  return $ (i, v)
+  return (i, v)
 
 printFeatureEnv :: (IsString s, Semigroup s, Monoid s) => FeatureEnv -> s
 printFeatureEnv (FeatureEnv fe ) = mconcat . intersperse (fromString ",") . map printEntry . M.toList $ fe
@@ -79,7 +77,7 @@ parseFeature = do
   cond <- parseFeatureCondition
   string ":"
   string "\""
-  w <- (many $ (try parseEscaped <|> noneOf "\""))
+  w <- many (try parseEscaped <|> noneOf "\"")
   string "\""
   return (cond, w)
   where
@@ -101,7 +99,7 @@ printFeature (cond, w) = mconcat
 
 parseFeatureCondition :: Stream s m Char => ParsecT s u m FeatureCondition
 parseFeatureCondition = do
-  entries <- parseFeatureEnvEntry `sepBy` (string ",")
+  entries <- parseFeatureEnvEntry `sepBy` string ","
   return . FeatureCondition $ M.fromList entries
 
 printFeatureCondition :: (IsString s, Semigroup s, Monoid s) => FeatureCondition -> s

@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
-
 module I18n.Hermeneus.MessageSpec where
 
 import Data.Either

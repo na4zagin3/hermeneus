@@ -14,6 +14,7 @@ import I18n.Hermeneus.ArbitraryInstances
 
 
 prop_word_parser_section :: LocalizedWord -> Bool
-prop_word_parser_section e = (parse parseLocalizedWord "parse expression" (printLocalizedWord e' :: Text)) == Right e'
+prop_word_parser_section e = result == Right e'
   where
     e' = normalize e
+    result = parse parseLocalizedWord "parse expression" (printLocalizedWord e' :: Text)

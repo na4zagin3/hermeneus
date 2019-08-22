@@ -59,20 +59,17 @@ parseWordReference = parseWord <|> parseWordRef <|> parseNumber
 parseFeatureConstraintExpr :: Stream s m Char => ParsecT s u m FeatureConstraintExpr
 parseFeatureConstraintExpr = do
   i <- parseFeatureId
-  expr <- parseFeatureReferenceExpr
-  return $ FeatureConstraintExpr i expr
+  FeatureConstraintExpr i <$> parseFeatureReferenceExpr
 
 parseFeatureReferenceExpr :: Stream s m Char => ParsecT s u m FeatureReferenceExpr
 parseFeatureReferenceExpr = parseConcordWord <|> parseFeature
   where
     parseConcordWord = do
       string "#"
-      wordRef <- parseWordReference
-      return $ ConcordWord wordRef
+      ConcordWord <$> parseWordReference
     parseFeature = do
       string "="
-      value <- parseFeatureValue
-      return $ Feature value
+      Feature <$> parseFeatureValue
 
 
 printTranslationTemplate :: (IsString s, Semigroup s, Monoid s) => TranslationTemplate -> s
